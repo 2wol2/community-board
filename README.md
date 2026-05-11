@@ -3,9 +3,7 @@
 > 문제를 발견하면 수치로 증명하기까지 끝내는 백엔드 개발자
 
 📧 이메일: miniminhi04@gmail.com
-
 🔗 GitHub: https://github.com/2wol2 
-
 📍 경기도 안양시
 
 ---
