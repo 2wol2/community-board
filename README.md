@@ -132,9 +132,11 @@ Spring 프로파일(`dev` / `prod`)로 환경별 설정 분리. 운영 환경에
 - 원인: 테스트 데이터가 모두 동일한 user_id를 가져 Hibernate가 첫 조회 후 캐시 히트로 처리
 - 해결: 1,000명의 서로 다른 user에 각 1개의 post를 할당해 정확한 측정 환경 구성
 
-**2. Spring Boot 4.x Docker 빌드 오류**
-- 원인: Spring Boot 4.x에서 패키지 경로 변경으로 `exclude` 방식 컴파일 오류 발생
-- 해결: `UserService`에 `UserDetailsService` 인터페이스 직접 구현, Spring Security가 자동으로 해당 빈 사용
+**2. Docker 빌드 시 Spring Security 자동 설정 충돌**
+- 원인: Spring Boot 4.x 환경에서 기존에 사용하던 Security AutoConfiguration exclude 방식이 정상 동작하지 않음
+- 문제: UserDetailsService 빈을 찾지 못해 Docker 환경에서 애플리케이션 실행 실패
+- 해결: `UserService`에 `UserDetailsService`를 직접 구현하여 Spring Security가 해당 빈을 자동 사용하도록 변경
+
 
 ---
 
