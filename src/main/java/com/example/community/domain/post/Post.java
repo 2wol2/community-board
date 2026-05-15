@@ -35,7 +35,7 @@ public class Post {
 
     @Builder.Default
     @Column(name = "view_count")
-    private Long viewCount = 0L;
+    private long viewCount = 0;
 
     public void increaseView(){
         this.viewCount++;

@@ -1,18 +1,17 @@
 package com.example.community.domain.post;
-import com.example.community.domain.post.dto.PostListDto;
-
 import com.example.community.domain.comment.dto.CommentDto;
-import com.example.community.global.exception.CustomException;
-import com.example.community.global.exception.ErrorCode;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.community.domain.post.dto.PostListDto;
 import com.example.community.domain.post.dto.PostResponseDto;
 import com.example.community.domain.user.User;
 import com.example.community.domain.user.UserRepository;
+import com.example.community.global.exception.CustomException;
+import com.example.community.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -52,6 +51,7 @@ public class PostService {
         return postRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
     }
+
     @Transactional
     public PostResponseDto findDetail(Long id){
 
