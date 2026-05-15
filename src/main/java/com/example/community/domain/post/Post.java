@@ -33,8 +33,9 @@ public class Post {
     @OneToMany(mappedBy = "post")
     private List<Comment> comments;
 
+    @Builder.Default
     @Column(name = "view_count")
-    private Long viewCount;
+    private Long viewCount = 0L;
 
     public void increaseView(){
         this.viewCount++;

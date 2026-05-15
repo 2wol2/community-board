@@ -1,11 +1,12 @@
 package com.example.community.controller;
 
 import com.example.community.domain.like.PostLikeService;
-import com.example.community.domain.post.Post;
 import com.example.community.domain.post.PostService;
 import com.example.community.domain.post.dto.PostListDto;
+import com.example.community.domain.post.dto.PostRequestDto;
 import com.example.community.domain.post.dto.PostResponseDto;
 import com.example.community.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Page;
@@ -23,12 +24,11 @@ public class PostController {
     private final PostLikeService postLikeService;
 
     @PostMapping
-    public Post create(
-            @RequestParam Long userId,
-            @RequestParam String title,
-            @RequestParam String content
+    public PostListDto create(
+            @RequestBody @Valid PostRequestDto request,
+            Authentication authentication
     ){
-        return postService.create(userId, title, content);
+        return postService.create(authentication.getName(), request.getTitle(), request.getContent());
     }
 
     @GetMapping
@@ -59,12 +59,11 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public Post update(
+    public PostListDto update(
             @PathVariable Long id,
-            @RequestParam String title,
-            @RequestParam String content
+            @RequestBody @Valid PostRequestDto request
     ){
-        return postService.update(id, title, content);
+        return postService.update(id, request.getTitle(), request.getContent());
     }
 
     @DeleteMapping("/{id}")

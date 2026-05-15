@@ -6,5 +6,5 @@ spring:
       ddl-auto: update
 
 jwt:
-  secret: my-super-secret-key-my-super-secret-key-123456
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}

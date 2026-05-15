@@ -25,7 +25,7 @@ public class PostLikeService {
                 .orElseThrow(()->new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (postLikeRepository.existsByUserAndPost(user, post)) {
-            throw new RuntimeException("이미 좋아요를 눌렀습니다.");
+            throw new CustomException(ErrorCode.ALREADY_LIKED);
         }
 
         PostLike like = PostLike.builder()

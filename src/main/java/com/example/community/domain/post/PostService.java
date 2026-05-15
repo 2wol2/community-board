@@ -2,6 +2,9 @@ package com.example.community.domain.post;
 import com.example.community.domain.post.dto.PostListDto;
 
 import com.example.community.domain.comment.dto.CommentDto;
+import com.example.community.global.exception.CustomException;
+import com.example.community.global.exception.ErrorCode;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.community.domain.post.dto.PostResponseDto;
 import com.example.community.domain.user.User;
 import com.example.community.domain.user.UserRepository;
@@ -20,17 +23,18 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public Post create(Long userId, String title, String content) {
+    public PostListDto create(String username, String title, String content) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Post post = Post.builder()
                 .title(title)
                 .content(content)
                 .user(user)
                 .build();
 
-        return postRepository.save(post);
+        Post saved = postRepository.save(post);
+        return new PostListDto(saved.getId(), saved.getTitle(), saved.getContent());
     }
 
     public List<PostListDto> findAll(){
@@ -46,8 +50,9 @@ public class PostService {
 
     public Post findById(Long id){
         return postRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
     }
+    @Transactional
     public PostResponseDto findDetail(Long id){
 
         Post post = postRepository.findPostWithComments(id);
@@ -92,18 +97,20 @@ public class PostService {
                 ));
     }
 
-    public Post update(Long postId, String title, String content){
+    @Transactional
+    public PostListDto update(Long postId, String title, String content){
         Post post = postRepository.findById(postId)
-                .orElseThrow();
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         post.setTitle(title);
         post.setContent(content);
 
-        return postRepository.save(post);
+        Post saved = postRepository.save(post);
+        return new PostListDto(saved.getId(), saved.getTitle(), saved.getContent());
     }
 
     public void delete(Long postId){
         Post post = postRepository.findById(postId)
-                .orElseThrow();
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         postRepository.delete(post);
     }
 }

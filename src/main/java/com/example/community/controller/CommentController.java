@@ -1,9 +1,9 @@
 package com.example.community.controller;
 
-import com.example.community.domain.comment.Comment;
-import com.example.community.domain.comment.CommentRepository;
 import com.example.community.domain.comment.CommentService;
+import com.example.community.domain.comment.dto.CommentRequestDto;
 import com.example.community.domain.comment.dto.CommentResponseDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +15,10 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
-    private final CommentRepository commentRepository;
 
     @PostMapping
-    public Comment create(
-            @RequestParam Long postId,
-            @RequestParam String content
-    ){
-        return commentService.create(postId,content);
+    public CommentResponseDto create(@RequestBody @Valid CommentRequestDto request){
+        return commentService.create(request.getPostId(), request.getContent());
     }
 
     @GetMapping("/post/{postId}")
