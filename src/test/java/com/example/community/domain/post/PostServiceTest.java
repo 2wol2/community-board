@@ -103,6 +103,6 @@ class PostServiceTest {
         PostResponseDto result = postService.findDetail(1L);
 
         assertThat(post.getViewCount()).isEqualTo(1L);
-        assertThat(result.viewCount()).isEqualTo(1L);
+        assertThat(result.getViewCount()).isEqualTo(1L);
     }
 }

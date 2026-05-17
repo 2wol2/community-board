@@ -35,7 +35,7 @@ class CommentServiceTest {
 
         CommentResponseDto result = commentService.create(1L, "댓글 내용");
 
-        assertThat(result.content()).isEqualTo("댓글 내용");
+        assertThat(result.getContent()).isEqualTo("댓글 내용");
     }
 
     @Test
