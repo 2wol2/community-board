@@ -81,6 +81,16 @@ public class PostController {
         return ApiResponse.success("좋아요 성공");
     }
 
+    @DeleteMapping("/{id}/like")
+    public ApiResponse<?> unlikePost(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        String username = authentication.getName();
+        postLikeService.unlikePost(id, username);
+        return ApiResponse.success("좋아요 취소 성공");
+    }
+
     @GetMapping("/{id}/likes")
     public ApiResponse<Long> likeCount(@PathVariable Long id){
 

@@ -11,7 +11,8 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글이 없습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 없습니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 틀렸습니다."),
-    ALREADY_LIKED(HttpStatus.BAD_REQUEST, "이미 좋아요를 눌렀습니다.");
+    ALREADY_LIKED(HttpStatus.BAD_REQUEST, "이미 좋아요를 눌렀습니다."),
+    LIKE_NOT_FOUND(HttpStatus.BAD_REQUEST, "좋아요를 누르지 않았습니다.");
 
     private final HttpStatus status;
     private final String message;
