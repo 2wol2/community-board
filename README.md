@@ -245,7 +245,28 @@ Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
 
 # Trouble Shooting
 
-## 1. JWT 인증 실패 시 403 반환 문제
+## N+1 문제 해결
+
+**문제 발견**
+게시글 목록 조회 시 SQL 로그에서 쿼리가 비정상적으로 과다 발생하는 것을 직접 확인.
+`@ManyToOne` 기본 fetch 전략(EAGER)으로 인해 게시글 N개 조회 시 N+1번 쿼리 실행.
+
+**해결 방법**
+- `FetchType.LAZY` 적용
+- `JOIN FETCH`로 필요한 경우 한 번에 조회
+
+**성능 측정 결과**
+
+| 데이터 수 | 수정 전 쿼리 | 수정 후 쿼리 | 수정 전 응답 | 수정 후 응답 |
+|----------|------------|------------|------------|------------|
+| 10개 | 12개 | 2개 | 86ms | 5ms |
+| 100개 | 102개 | 2개 | 75ms | 11ms |
+| 1000개 | 1,002개 | 2개 | 353ms | 23ms |
+
+> 수정 후 쿼리 수는 데이터 규모와 무관하게 항상 2개로 고정.
+GitHub에서 Trouble Shooting 섹션 들어가서 맨 위에 붙여넣고 Commit changes 눌러줘 😊Sonnet 4.6
+
+## JWT 인증 실패 시 403 반환 문제
 
 ### 문제
 
@@ -265,7 +286,7 @@ Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
 
 ---
 
-## 2. Post.viewCount NullPointerException
+## Post.viewCount NullPointerException
 
 ### 문제
 
@@ -284,7 +305,7 @@ private Long viewCount = 0L;
 
 ---
 
-## 3. application-dev.yml 누락으로 인한 실행 실패
+## application-dev.yml 누락으로 인한 실행 실패
 
 ### 문제
 
@@ -296,7 +317,7 @@ private Long viewCount = 0L;
 
 ---
 
-## 4. Entity 직접 반환 문제
+## Entity 직접 반환 문제
 
 ### 문제
 
