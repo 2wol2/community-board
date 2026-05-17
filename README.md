@@ -1,177 +1,376 @@
-# 이민희 | 백엔드 개발자
+# Community Board API Server
 
-> 문제를 발견하면 직접 검증하고 개선하는 백엔드 개발자
-
-📧 이메일: miniminhi04@gmail.com
-🔗 GitHub: https://github.com/2wol2 
-📍 경기도 안양시
+> Spring Boot 기반 JWT 인증 커뮤니티 API 서버 프로젝트입니다.
+> 단순 CRUD 구현을 넘어 인증, 예외 처리, Validation, Docker 환경 구성, 테스트 코드 작성까지 경험하는 것을 목표로 개발했습니다.
 
 ---
 
-## 🛠 기술 스택
+# 프로젝트 소개
 
-| 분류 | 기술 |
-|------|------|
-| Language | Java 17 |
-| Framework | Spring Boot 4.0.3 |
-| Security | Spring Security, JWT |
-| ORM | Spring Data JPA (Hibernate) |
-| Database | MySQL 8.0 |
-| Build | Gradle |
-| Infra | Docker, Docker Compose, Docker Hub |
-| API Docs | Springdoc OpenAPI (Swagger UI) |
-| Test | JUnit5, @ParameterizedTest |
+이 프로젝트는 게시글, 댓글, 좋아요 기능을 제공하는 REST API 서버입니다.
 
----
+Spring Security + JWT 기반 인증 구조를 적용하였고,
+실제 운영 환경을 고려하여 다음과 같은 부분들을 개선했습니다.
 
-## 📁 프로젝트
-
-### Community API Server
-> Spring Boot 기반 커뮤니티 백엔드 REST API 서버
-
-**기간:** 2025.03 ~  
-**유형:** 개인 프로젝트  
-**GitHub:** [링크 추가]
-
-#### 개요
-RESTful API 설계, JPA 최적화, JWT 인증 구현을 목적으로 개발한 커뮤니티 백엔드 서버. 단순 구현에 그치지 않고 성능 문제를 직접 발견하고 수치로 검증하는 데 초점을 맞췄음.
-
-#### 주요 기능
-- JWT 기반 회원 인증/인가 (회원가입, 로그인, 토큰 검증)
-- 게시글 CRUD, 페이징, 키워드 검색, 조회수 자동 증가
-- 댓글 작성/삭제, 좋아요 등록 (중복 방지)
-- 글로벌 예외 처리 (ErrorCode + GlobalExceptionHandler)
-- Swagger UI API 문서 자동화
-- Spring 프로파일로 개발/운영 환경 분리 (dev/prod)
+* JWT 인증 및 권한 처리
+* DTO 기반 응답 구조 적용
+* Global Exception Handling
+* Validation 처리
+* Docker 기반 MySQL 환경 구성
+* 테스트 코드 작성
+* application-dev / test / prod 환경 분리
 
 ---
 
-#### 🔥 핵심 기술 설명
+# 기술 스택
 
-**1. JWT 기반 인증 설계**
+## Backend
 
-세션 방식은 수평 확장 시 세션 공유 문제가 발생해 JWT Stateless 방식을 선택. 토큰 자체에 사용자 정보를 담아 DB 조회 없이 인증 가능하도록 설계.
+* Java 17
+* Spring Boot
+* Spring Security
+* Spring Data JPA (Hibernate)
+* JWT (jjwt)
 
-```
-요청 → JwtAuthenticationFilter → 토큰 검증 → SecurityContext 등록 → Controller
-```
+## Database
 
-- `JwtTokenProvider`: 토큰 생성 / 파싱 / 검증
-- `JwtAuthenticationFilter`: `OncePerRequestFilter` 상속으로 요청당 1회만 실행 보장
-- `SecurityConfig`: 인증 필요 경로 / 불필요 경로 명확히 분리
+* MySQL 8
+* H2 Database (Test)
 
----
+## DevOps / Infra
 
-**2. N+1 문제 발견 및 해결**
+* Docker
+* Docker Compose
 
-**문제 발견**  
-게시글 목록 조회 시 쿼리가 비정상적으로 과다 발생하는 것을 직접 확인.  
-`@ManyToOne` 기본 fetch 전략(EAGER)으로 인해 게시글 N개 조회 시 작성자 로딩을 위해 N+1번 쿼리 실행.
+## Test
 
-**해결 과정**
+* JUnit5
+* Mockito
 
-| 방법 | 적용 위치 | 효과 |
-|------|----------|------|
-| `FetchType.LAZY` | Post.user, Comment.post, PostLike.user/post | 실제 접근 시에만 로딩 |
-| `JOIN FETCH` | PostRepository.findPostWithComments | 게시글+댓글 1쿼리로 처리 |
-| `findByPostId()` | CommentRepository | Post 사전 조회 제거 |
-| `countByPostId()` | PostLikeRepository | Post 사전 조회 제거 |
-| `existsBy()` | PostLikeRepository | findBy 대비 의도 명확화 |
+## Documentation
 
-**성능 측정 결과 (MySQL 환경, @ParameterizedTest로 자동화 검증)**
-
-| 데이터 수 | 수정 전 쿼리 | 수정 후 쿼리 | 수정 전 응답 | 수정 후 응답 | 개선율 |
-|----------|------------|------------|------------|------------|------|
-| 10개 | 12개 | 2개 | 86ms | 5ms | 쿼리 83% ↓ / 응답 94% ↓ |
-| 100개 | 102개 | 2개 | 75ms | 11ms | 쿼리 98% ↓ / 응답 85% ↓ |
-| **1000개** | **1,002개** | **2개** | **353ms** | **23ms** | **쿼리 99.8% ↓ / 응답 93% ↓** |
-
-> 수정 후 쿼리 수는 데이터 규모와 무관하게 항상 2개로 고정.  
-> N이 커질수록 N+1은 선형 증가하지만 수정 후는 O(1) 유지.
+* Swagger (springdoc-openapi)
 
 ---
 
-**3. 도메인 중심 패키지 구조 선택**
+# 주요 기능
 
-처음엔 계층형 구조(controller/service/repository)로 시작했으나, 기능 추가 시 어떤 파일이 어디 있는지 파악이 어려워짐. 스스로 문제를 인식하고 도메인 중심 구조로 전환.
+## 사용자
 
-```
-com.example.community
-├── controller/         # HTTP 요청 진입점
-├── domain/
-│   ├── user/           # 회원 도메인 (Entity, Repository, Service)
-│   ├── post/           # 게시글 도메인
-│   ├── comment/        # 댓글 도메인
-│   └── like/           # 좋아요 도메인
-└── global/
-    ├── config/         # Security, Swagger 설정
-    ├── exception/      # 전역 예외 처리 (ErrorCode + GlobalExceptionHandler)
-    ├── jwt/            # JWT 필터 및 토큰 프로바이더
-    └── response/       # 공통 응답 포맷 (ApiResponse<T>)
+* 회원가입
+* 로그인 (JWT 발급)
+* 사용자 조회
+
+## 게시글
+
+* 게시글 생성
+* 게시글 조회
+* 게시글 수정
+* 게시글 삭제
+* 조회수 증가
+
+## 댓글
+
+* 댓글 작성
+* 댓글 삭제
+
+## 좋아요
+
+* 게시글 좋아요
+* 좋아요 취소
+* 중복 좋아요 방지
+
+---
+
+# 프로젝트 구조
+
+```text
+src/main/java/com/example/community
+├── domain
+│   ├── user
+│   ├── post
+│   ├── comment
+│   └── like
+├── global
+│   ├── exception
+│   ├── jwt
+│   └── config
+└── controller
 ```
 
-각 도메인이 자신의 책임만 갖도록 설계해 응집도와 가독성 개선.
+도메인별(feature 기반) 패키지 구조를 사용하여 관련 기능들을 응집도 있게 관리했습니다.
 
 ---
 
-**4. 운영/개발 환경 분리**
+# 인증 구조
 
-Spring 프로파일(`dev` / `prod`)로 환경별 설정 분리. 운영 환경에서 `show-sql`, `generate_statistics` 비활성화로 불필요한 오버헤드 제거. DB 접속 정보를 환경변수로 주입해 소스코드에 민감 정보 미포함.
+JWT 기반 Stateless 인증 방식을 적용했습니다.
 
-| 파일 | 환경 | 주요 설정 |
-|------|------|----------|
-| `application.yml` | 공통 | ddl-auto, 기본 프로파일(dev) |
-| `application-dev.yml` | 로컬 | localhost DB, show-sql: true |
-| `application-prod.yml` | 운영 | 환경변수 DB 주입, 로깅 OFF |
+```text
+로그인
+→ JWT 발급
+→ Authorization Header
+→ JwtAuthenticationFilter
+→ SecurityContext 저장
+→ 인증 사용자 접근
+```
 
----
+Authorization Header 예시:
 
-#### 🐛 트러블슈팅
-
-**1. Hibernate 1차 캐시로 인한 N+1 미재현**
-- 원인: 테스트 데이터가 모두 동일한 user_id를 가져 Hibernate가 첫 조회 후 캐시 히트로 처리
-- 해결: 1,000명의 서로 다른 user에 각 1개의 post를 할당해 정확한 측정 환경 구성
-
-**2. Docker 빌드 시 Spring Security 자동 설정 충돌**
-- 원인: Spring Boot 4.x 환경에서 기존에 사용하던 Security AutoConfiguration exclude 방식이 정상 동작하지 않음
-- 문제: UserDetailsService 빈을 찾지 못해 Docker 환경에서 애플리케이션 실행 실패
-- 해결: `UserService`에 `UserDetailsService`를 직접 구현하여 Spring Security가 해당 빈을 자동 사용하도록 변경
-
+```http
+Authorization: Bearer {JWT_TOKEN}
+```
 
 ---
 
-#### API 명세
+# API 응답 구조
 
-| Method | URI | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | /api/users/register | 회원가입 | ❌ |
-| POST | /api/auth/login | 로그인 (JWT 발급) | ❌ |
-| GET | /api/posts | 게시글 목록 | ✅ |
-| GET | /api/posts/paged | 게시글 페이징 | ✅ |
-| GET | /api/posts/search | 키워드 검색 | ✅ |
-| POST | /api/posts | 게시글 작성 | ✅ |
-| PUT | /api/posts/{id} | 게시글 수정 | ✅ |
-| DELETE | /api/posts/{id} | 게시글 삭제 | ✅ |
-| POST | /api/posts/{id}/like | 좋아요 | ✅ |
-| POST | /api/comments | 댓글 작성 | ✅ |
-| DELETE | /api/comments/{id} | 댓글 삭제 | ✅ |
+## 성공 응답
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "게시글"
+  },
+  "message": "요청 성공"
+}
+```
+
+## 실패 응답
+
+```json
+{
+  "code": "POST_NOT_FOUND",
+  "message": "게시글이 없습니다."
+}
+```
 
 ---
 
-## 🎓 학력
+# Validation
 
-**[학교명] [학과]** 성공회대학교 소프트웨어, 정보통신 복수전공 졸업 (2025)
-- 데이터베이스 수업 팀 프로젝트: 비효율적인 회의 방식 발견 → Notion 회의록 템플릿 직접 제작, 비동기 사전 공유 방식 도입으로 회의 시간 단축
+DTO 기반 Validation을 적용했습니다.
+
+예시:
+
+```java
+@NotBlank(message = "사용자명은 필수입니다.")
+@Size(min = 2, max = 20)
+private String username;
+```
+
+Validation 실패 시:
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "title: 제목은 필수입니다."
+}
+```
 
 ---
 
-## 📌 자기소개
+# 테스트
 
-처음 작성한 코드가 마음에 들지 않으면 다시 설계하고,
-쿼리가 비효율적으로 동작하면 원인을 끝까지 분석합니다.
+Mockito 기반 Service Layer 테스트를 작성했습니다.
 
-N+1 문제를 직접 재현하고
-`@ParameterizedTest`로 N=10/100/1000 환경을 자동화 검증해
-수치로 개선 효과를 확인했던 경험처럼,
-문제를 발견하면 감으로 넘기지 않고
-직접 검증하고 개선하는 개발자가 되고자 합니다.
+테스트 항목:
+
+* 회원가입 성공/실패
+* 로그인 성공/실패
+* 게시글 좋아요
+* 중복 좋아요 예외
+* 좋아요 취소
+* 사용자 조회 예외
+
+공통 Fixture 클래스를 분리하여 중복 테스트 코드를 제거했습니다.
+
+---
+
+# Docker 실행
+
+## MySQL 실행
+
+```bash
+docker run --name community-mysql \
+-e MYSQL_ROOT_PASSWORD=root1234 \
+-e MYSQL_DATABASE=community \
+-p 3307:3306 \
+-d mysql:8
+```
+
+---
+
+# 환경 설정
+
+## application.yml
+
+공통 설정 관리
+
+* JWT 설정
+* active profile
+
+## application-dev.yml
+
+개발 환경 설정
+
+* MySQL
+* JPA 설정
+
+## application-test.yml
+
+테스트 환경 설정
+
+* H2 Database
+
+## application-prod.yml
+
+운영 환경 설정
+
+* 환경 변수 기반 datasource
+
+---
+
+# Swagger
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
+
+---
+
+# Trouble Shooting
+
+## 1. JWT 인증 실패 시 403 반환 문제
+
+### 문제
+
+토큰이 없거나 만료되었을 때 403 Forbidden 반환.
+
+### 해결
+
+`authenticationEntryPoint`를 추가하여 인증 실패 시 401 Unauthorized 반환하도록 수정.
+
+```java
+.exceptionHandling(ex -> ex
+        .authenticationEntryPoint((request, response, e) ->
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+    )
+            )
+```
+
+---
+
+## 2. Post.viewCount NullPointerException
+
+### 문제
+
+조회수 증가 시 `viewCount++`에서 NullPointerException 발생.
+
+### 원인
+
+`Long viewCount` 초기값이 null 상태.
+
+### 해결
+
+```java
+@Builder.Default
+private Long viewCount = 0L;
+```
+
+---
+
+## 3. application-dev.yml 누락으로 인한 실행 실패
+
+### 문제
+
+`spring.profiles.active=dev` 상태에서 datasource 설정 누락.
+
+### 해결
+
+`application-dev.yml` 분리 및 환경별 설정 구성.
+
+---
+
+## 4. Entity 직접 반환 문제
+
+### 문제
+
+회원가입 응답에서 password 해시값 노출.
+
+### 해결
+
+Entity 대신 DTO 반환 구조로 변경.
+
+Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니다.
+이를 통해 password와 같은 민감 정보 노출을 방지하고, API 응답 구조를 안정적으로 관리하도록 개선했습니다.
+
+---
+
+# 개선 예정
+
+* Refresh Token 적용
+* Redis 기반 인증 관리
+* QueryDSL 적용
+* Controller 테스트 추가
+* Docker Compose 최적화
+* CI/CD 구축
+
+---
+
+# 실행 방법
+
+```bash
+./gradlew bootRun
+```
+
+또는
+
+```bash
+docker compose up --build
+```
+
+---
+
+# 설계 의도
+
+## DTO 기반 응답 구조
+
+Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니다.
+민감 정보 노출을 방지하고, API 스펙 변경 시 유연하게 대응할 수 있도록 설계했습니다.
+
+## Exception Handling
+
+CustomException + ErrorCode 구조를 적용하여
+예외 상황을 일관된 JSON 형태로 반환하도록 구성했습니다.
+
+## JWT 인증 처리
+
+JWT 인증 실패 시 403 대신 401 Unauthorized를 반환하도록 수정하여
+HTTP 상태 코드의 의미를 명확하게 구분하도록 개선했습니다.
+
+---
+
+# 회고 / 배운 점
+
+이 프로젝트를 진행하며 단순 CRUD 구현보다,
+인증/예외 처리/Validation/테스트 코드 구조 설계가 백엔드 개발에서 중요하다는 점을 경험했습니다.
+
+특히 JWT 인증 흐름과 Spring Security 동작 방식,
+Global Exception Handling 구조를 직접 구현하며 백엔드 구조에 대한 이해를 높일 수 있었습니다.
+
+---
+
+# 프로젝트 목표
+
+단순히 동작하는 CRUD가 아니라,
+
+* 왜 이렇게 설계했는지 설명할 수 있는 구조
+* 인증/예외/Validation 흐름을 이해한 구조
+* 실제 운영 환경을 고려한 구조
+
+를 만드는 것을 목표로 개발했습니다.
