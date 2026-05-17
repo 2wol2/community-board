@@ -235,6 +235,18 @@ docker run --name community-mysql \
 
 ---
 
+# CI/CD
+
+GitHub Actions 기반 CI 파이프라인을 구축했습니다.
+- push / pull request 시 자동 테스트 실행
+- test profile 기반 H2 Database 환경 분리
+- Gradle Build 자동 검증
+
+CI 구축 과정에서 테스트 JVM의 profile 전달 문제를 해결하며
+실행 환경 분리의 중요성을 경험했습니다.
+
+---
+
 # Swagger
 
 ```text
