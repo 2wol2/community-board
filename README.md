@@ -1,5 +1,7 @@
 # Community Board API Server
 
+![CI](https://github.com/2wol2/community-board/actions/workflows/ci.yml/badge.svg)
+
 > Spring Boot 기반 JWT 인증 커뮤니티 API 서버 프로젝트입니다.
 > 단순 CRUD 구현을 넘어 인증, 예외 처리, Validation, Docker 환경 구성, 테스트 코드 작성까지 경험하는 것을 목표로 개발했습니다.
 
@@ -337,7 +339,6 @@ Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니
 * QueryDSL 적용
 * Controller 테스트 추가
 * Docker Compose 최적화
-* CI/CD 구축
 
 ---
 
