@@ -263,8 +263,6 @@ Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
 | 100개 | 102개 | 2개 | 75ms | 11ms |
 | 1000개 | 1,002개 | 2개 | 353ms | 23ms |
 
-> 수정 후 쿼리 수는 데이터 규모와 무관하게 항상 2개로 고정.
-GitHub에서 Trouble Shooting 섹션 들어가서 맨 위에 붙여넣고 Commit changes 눌러줘 😊Sonnet 4.6
 
 ## JWT 인증 실패 시 403 반환 문제
 
