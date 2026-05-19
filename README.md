@@ -124,12 +124,11 @@ Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 �
 
 ---
 
-```markdown
 # 📦 API Response
 
 일관된 API 응답 구조를 적용했습니다.
 
-## Success
+## Success Response
 
 ```json
 {
@@ -137,8 +136,9 @@ Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 �
   "data": {},
   "message": "요청 성공"
 }
+```
 
-## 실패 응답
+## Error Response
 
 ```json
 {
