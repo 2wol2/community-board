@@ -124,20 +124,19 @@ Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 �
 
 ---
 
+```markdown
 # 📦 API Response
 
-## 성공 응답
+일관된 API 응답 구조를 적용했습니다.
+
+## Success
 
 ```json
 {
   "success": true,
-  "data": {
-    "id": 1,
-    "title": "게시글"
-  },
+  "data": {},
   "message": "요청 성공"
 }
-```
 
 ## 실패 응답
 
@@ -150,24 +149,13 @@ Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 �
 
 ---
 
-# ✅ Validation
+# ✨ Features
 
-DTO 기반 Validation을 적용했습니다.
-
-```java
-@NotBlank(message = "사용자명은 필수입니다.")
-@Size(min = 2, max = 20)
-private String username;
-```
-
-Validation 실패 시:
-
-```json
-{
-  "code": "VALIDATION_ERROR",
-  "message": "title: 제목은 필수입니다."
-}
-```
+- JWT 기반 회원가입 / 로그인
+- 게시글 CRUD 및 조회수 증가
+- 댓글 작성 / 삭제
+- 게시글 좋아요 / 취소
+- Validation 및 Exception Handling
 
 ---
 
@@ -206,11 +194,9 @@ Gradle Build 검증
 
 # ⚙ Environment
 
-| Profile | Description    |
-| ------- | -------------- |
-| dev     | MySQL 기반 개발 환경 |
-| test    | H2 기반 테스트 환경   |
-| prod    | 환경 변수 기반 운영 환경 |
+- dev : MySQL 기반 개발 환경
+- test : H2 기반 테스트 환경
+- prod : 환경 변수 기반 운영 환경
 
 ---
 
@@ -267,19 +253,6 @@ JWT 인증 후 API를 직접 테스트할 수 있도록 구성했습니다.
     )
 )
 ```
-
----
-
-## Entity 직접 반환 문제
-
-### 문제
-
-회원가입 응답에서 password 해시값이 노출되는 문제가 있었습니다.
-
-### 해결
-
-Entity 대신 DTO 기반 응답 구조를 적용했습니다.
-민감 정보 노출을 방지하고 API 응답 구조를 안정적으로 관리할 수 있도록 개선했습니다.
 
 ---
 
@@ -349,34 +322,20 @@ docker compose up --build
 
 # 💡 Design Decisions
 
-## DTO 기반 응답 구조
-
-Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니다.
-민감 정보 노출을 방지하고 API 스펙 변경 시 유연하게 대응할 수 있도록 설계했습니다.
-
-## Exception Handling
-
-CustomException + ErrorCode 구조를 적용하여 예외 상황을 일관된 JSON 형태로 반환하도록 구성했습니다.
-
-## JWT 인증 처리
-
-JWT 인증 실패 시 403 대신 401 Unauthorized를 반환하도록 수정하여 HTTP 상태 코드의 의미를 명확하게 구분하도록 개선했습니다.
-
+- DTO 기반 응답 구조로 민감 정보 노출 방지
+- CustomException + ErrorCode 기반 예외 처리 구조 적용
+- JWT 인증 실패 시 401 Unauthorized 반환
+- dev/test/prod 환경 분리
 ---
 
 # 📚 What I Learned
 
-이 프로젝트를 진행하며 단순 CRUD 구현보다,
-인증/예외 처리/Validation/테스트 코드 구조 설계가
-백엔드 개발에서 중요하다는 점을 경험했습니다.
+이 프로젝트를 통해:
 
-특히:
+- JWT 인증 흐름 및 Spring Security 구조
+- Validation / Exception Handling 구조
+- 테스트 환경 분리 및 MockMvc 테스트
+- GitHub Actions 기반 CI 환경 구성
+- N+1 문제 분석 및 개선
 
-* JWT 인증 흐름
-* Spring Security 구조
-* Global Exception Handling
-* 테스트 환경 분리
-* CI 환경 구성
-* N+1 문제 분석 및 개선
-
-을 직접 경험하며 실제 서비스 구조에 대한 이해를 높일 수 있었습니다.
+등 실제 서비스 구조를 직접 경험할 수 있었습니다.
