@@ -3,8 +3,13 @@
 ![CI](https://github.com/2wol2/community-board/actions/workflows/ci.yml/badge.svg)
 
 > Spring Boot 기반 JWT 인증 커뮤니티 API 서버 프로젝트입니다.
-> 단순 CRUD 구현을 넘어 인증, 예외 처리, Validation, Docker 환경 구성, 테스트 코드 작성까지 경험하는 것을 목표로 개발했습니다.
 
+> Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지만,
+실제 서비스 구조에서 중요한 인증, 예외 처리, 테스트, 환경 분리 경험은 부족하다고 느꼈습니다.
+
+그래서 단순 기능 구현보다
+“왜 이렇게 설계했는지 설명 가능한 프로젝트”
+를 목표로 JWT 인증, Validation, 테스트 코드, CI 환경까지 직접 구성하며 프로젝트를 진행했습니다.
 ---
 
 # 프로젝트 소개
@@ -29,7 +34,7 @@ Spring Security + JWT 기반 인증 구조를 적용하였고,
 ## Backend
 
 * Java 17
-* Spring Boot
+* Spring Boot 4.x
 * Spring Security
 * Spring Data JPA (Hibernate)
 * JWT (jjwt)
@@ -176,18 +181,22 @@ Validation 실패 시:
 
 # 테스트
 
-Mockito 기반 Service Layer 테스트를 작성했습니다.
+Service Layer 테스트 및 MockMvc 기반 Controller 테스트를 작성했습니다.
 
-테스트 항목:
+## 테스트 항목
 
 * 회원가입 성공/실패
 * 로그인 성공/실패
-* 게시글 좋아요
+* 게시글 좋아요/취소
 * 중복 좋아요 예외
-* 좋아요 취소
-* 사용자 조회 예외
+* Validation 실패 응답
+* JWT 인증 실패 응답
+* Controller API 테스트
+* Exception 응답 테스트
 
-공통 Fixture 클래스를 분리하여 중복 테스트 코드를 제거했습니다.
+공통 Fixture 클래스를 분리하여 중복 테스트 코드를 제거했고,
+GitHub Actions 기반 CI 환경에서 자동 테스트가 수행되도록 구성했습니다.
+Mockito 기반 Service Layer 테스트를 작성했습니다.
 
 ---
 
@@ -253,7 +262,9 @@ CI 구축 과정에서 테스트 JVM의 profile 전달 문제를 해결하며
 http://localhost:8080/swagger-ui/index.html
 ```
 
-Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
+Swagger(OpenAPI)를 적용하여 API 명세 및 테스트 환경을 구성했습니다.
+
+JWT 인증 후 API를 직접 테스트할 수 있도록 구성했습니다.
 
 ---
 
@@ -410,12 +421,12 @@ class ControllerTestConfig {
 
 # 개선 예정
 
-* Refresh Token 적용
-* Redis 기반 인증 관리
-* QueryDSL 적용
-* Controller 테스트 고도화
-* Docker Compose 최적화
-
+* Refresh Token 기반 인증 구조 개선
+* Redis 기반 인증/캐시 관리
+* QueryDSL 기반 동적 검색 기능 구현
+* Controller/통합 테스트 고도화
+* Docker Compose 운영 환경 개선
+* 배포 자동화(CD) 구축
 ---
 
 # 실행 방법
