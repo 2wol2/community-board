@@ -2,90 +2,66 @@
 
 ![CI](https://github.com/2wol2/community-board/actions/workflows/ci.yml/badge.svg)
 
-> Spring Boot 기반 JWT 인증 커뮤니티 API 서버 프로젝트입니다.
+> JWT 인증 기반 커뮤니티 API 서버 프로젝트입니다.
 
-> Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지만,
+Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지만,
 실제 서비스 구조에서 중요한 인증, 예외 처리, 테스트, 환경 분리 경험은 부족하다고 느꼈습니다.
 
 그래서 단순 기능 구현보다
 “왜 이렇게 설계했는지 설명 가능한 프로젝트”
 를 목표로 JWT 인증, Validation, 테스트 코드, CI 환경까지 직접 구성하며 프로젝트를 진행했습니다.
+
 ---
 
-# 프로젝트 소개
+# 📌 Overview
 
 이 프로젝트는 게시글, 댓글, 좋아요 기능을 제공하는 REST API 서버입니다.
 
-Spring Security + JWT 기반 인증 구조를 적용하였고,
-실제 운영 환경을 고려하여 다음과 같은 부분들을 개선했습니다.
+단순 CRUD 구현에서 끝나지 않고:
 
-* JWT 인증 및 권한 처리
-* DTO 기반 응답 구조 적용
-* Global Exception Handling
-* Validation 처리
-* Docker 기반 MySQL 환경 구성
-* 테스트 코드 작성
-* application-dev / test / prod 환경 분리
+- JWT 기반 인증/인가
+- Validation 및 예외 처리
+- DTO 기반 응답 구조
+- MockMvc 기반 테스트 코드
+- GitHub Actions CI
+- Docker 기반 실행 환경
+- dev/test/prod 환경 분리
 
----
-
-# 기술 스택
-
-## Backend
-
-* Java 17
-* Spring Boot 4.x
-* Spring Security
-* Spring Data JPA (Hibernate)
-* JWT (jjwt)
-
-## Database
-
-* MySQL 8
-* H2 Database (Test)
-
-## DevOps / Infra
-
-* Docker
-* Docker Compose
-
-## Test
-
-* JUnit5
-* Mockito
-
-## Documentation
-
-* Swagger (springdoc-openapi)
+등 실제 운영 환경을 고려한 구조를 직접 구성했습니다.
 
 ---
 
-# 주요 기능
+# 🛠 Tech Stack
 
-## 사용자
+| Category | Skills |
+|---|---|
+| Backend | Java 17, Spring Boot 4.x, Spring Security |
+| Database | MySQL 8, H2 |
+| ORM | Spring Data JPA (Hibernate) |
+| Auth | JWT |
+| Infra | Docker, Docker Compose |
+| Test | JUnit5, Mockito, MockMvc |
+| CI | GitHub Actions |
+| Docs | Swagger(OpenAPI) |
 
-* 회원가입
-* 로그인 (JWT 발급)
-* 사용자 조회
+---
 
-## 게시글
+# ✨ Features
 
-* 게시글 생성
-* 게시글 조회
-* 게시글 수정
-* 게시글 삭제
-* 조회수 증가
+## 👤 User
+- 회원가입
+- 로그인(JWT 발급)
 
-## 댓글
+## 📝 Post
+- 게시글 CRUD
+- 조회수 증가
 
-* 댓글 작성
-* 댓글 삭제
+## 💬 Comment
+- 댓글 작성/삭제
 
-## 좋아요
-
-* 게시글 좋아요
-* 좋아요 취소
-* 중복 좋아요 방지
+## ❤️ Like
+- 좋아요 등록/취소
+- 중복 좋아요 방지
 
 ---
 
@@ -109,24 +85,31 @@ src/main/java/com/example/community
 
 ---
 
-# 인증 구조
+````markdown
+# 🔐 Authentication Flow
 
 JWT 기반 Stateless 인증 방식을 적용했습니다.
 
 ```text
-로그인
-→ JWT 발급
-→ Authorization Header
-→ JwtAuthenticationFilter
-→ SecurityContext 저장
-→ 인증 사용자 접근
-```
+[1] Login Request
+        ↓
+[2] Username / Password 검증
+        ↓
+[3] JWT Access Token 발급
+        ↓
+[4] Authorization Header 포함
+        ↓
+[5] JwtAuthenticationFilter에서 토큰 검증
+        ↓
+[6] SecurityContext에 인증 정보 저장
+        ↓
+[7] 인증된 사용자로 API 접근
 
 Authorization Header 예시:
 
-```http
 Authorization: Bearer {JWT_TOKEN}
-```
+
+Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 인증을 처리했습니다.
 
 ---
 
@@ -179,24 +162,35 @@ Validation 실패 시:
 
 ---
 
-# 테스트
+# 🧪 Test & CI
 
-Service Layer 테스트 및 MockMvc 기반 Controller 테스트를 작성했습니다.
+Service Layer 테스트와 MockMvc 기반 Controller 테스트를 작성했습니다.  
+또한 GitHub Actions를 통해 push / pull request 시 자동으로 테스트와 빌드가 수행되도록 구성했습니다.
 
-## 테스트 항목
+## Test Coverage
 
-* 회원가입 성공/실패
-* 로그인 성공/실패
-* 게시글 좋아요/취소
-* 중복 좋아요 예외
-* Validation 실패 응답
-* JWT 인증 실패 응답
-* Controller API 테스트
-* Exception 응답 테스트
+| 구분 | 테스트 내용 |
+|---|---|
+| Service Test | 회원가입, 로그인, 좋아요, 좋아요 취소, 예외 케이스 검증 |
+| Controller Test | MockMvc 기반 API 요청/응답 검증 |
+| Validation Test | 잘못된 요청 값에 대한 400 응답 검증 |
+| Security Test | JWT 미인증 요청에 대한 401 응답 검증 |
+| Exception Test | CustomException 발생 시 ErrorResponse 검증 |
 
-공통 Fixture 클래스를 분리하여 중복 테스트 코드를 제거했고,
-GitHub Actions 기반 CI 환경에서 자동 테스트가 수행되도록 구성했습니다.
-Mockito 기반 Service Layer 테스트를 작성했습니다.
+## CI Pipeline
+
+```text
+Push / Pull Request
+        ↓
+GitHub Actions 실행
+        ↓
+JDK 17 설정
+        ↓
+Gradle Test 실행
+        ↓
+Gradle Build 검증
+        ↓
+성공 / 실패 결과 확인
 
 ---
 
@@ -241,18 +235,6 @@ docker run --name community-mysql \
 운영 환경 설정
 
 * 환경 변수 기반 datasource
-
----
-
-# CI/CD
-
-GitHub Actions 기반 CI 파이프라인을 구축했습니다.
-- push / pull request 시 자동 테스트 실행
-- test profile 기반 H2 Database 환경 분리
-- Gradle Build 자동 검증
-
-CI 구축 과정에서 테스트 JVM의 profile 전달 문제를 해결하며
-실행 환경 분리의 중요성을 경험했습니다.
 
 ---
 
