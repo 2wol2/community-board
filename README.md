@@ -1,5 +1,9 @@
 # Community Board API Server
 
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.x-brightgreen)
+![MySQL](https://img.shields.io/badge/MySQL-8-blue)
+![JWT](https://img.shields.io/badge/JWT-Auth-black)
 ![CI](https://github.com/2wol2/community-board/actions/workflows/ci.yml/badge.svg)
 
 > JWT 인증 기반 커뮤니티 API 서버 프로젝트입니다.
@@ -19,53 +23,58 @@ Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지�
 
 단순 CRUD 구현에서 끝나지 않고:
 
-- JWT 기반 인증/인가
-- Validation 및 예외 처리
-- DTO 기반 응답 구조
-- MockMvc 기반 테스트 코드
-- GitHub Actions CI
-- Docker 기반 실행 환경
-- dev/test/prod 환경 분리
+* JWT 기반 인증/인가
+* Validation 및 예외 처리
+* DTO 기반 응답 구조
+* MockMvc 기반 테스트 코드
+* GitHub Actions CI
+* Docker 기반 실행 환경
+* dev/test/prod 환경 분리
 
 등 실제 운영 환경을 고려한 구조를 직접 구성했습니다.
 
-
+---
 
 # 🛠 Tech Stack
 
-| Category | Skills |
-|---|---|
-| Backend | Java 17, Spring Boot 4.x, Spring Security |
-| Database | MySQL 8, H2 |
-| ORM | Spring Data JPA (Hibernate) |
-| Auth | JWT |
-| Infra | Docker, Docker Compose |
-| Test | JUnit5, Mockito, MockMvc |
-| CI | GitHub Actions |
-| Docs | Swagger(OpenAPI) |
+| Category | Skills                                    |
+| -------- | ----------------------------------------- |
+| Backend  | Java 17, Spring Boot 4.x, Spring Security |
+| Database | MySQL 8, H2                               |
+| ORM      | Spring Data JPA (Hibernate)               |
+| Auth     | JWT                                       |
+| Infra    | Docker, Docker Compose                    |
+| Test     | JUnit5, Mockito, MockMvc                  |
+| CI       | GitHub Actions                            |
+| Docs     | Swagger(OpenAPI)                          |
 
-
+---
 
 # ✨ Features
 
 ## 👤 User
-- 회원가입
-- 로그인(JWT 발급)
+
+* 회원가입
+* 로그인(JWT 발급)
+* 사용자 조회
 
 ## 📝 Post
-- 게시글 CRUD
-- 조회수 증가
+
+* 게시글 CRUD
+* 조회수 증가
 
 ## 💬 Comment
-- 댓글 작성/삭제
+
+* 댓글 작성/삭제
 
 ## ❤️ Like
-- 좋아요 등록/취소
-- 중복 좋아요 방지
+
+* 좋아요 등록/취소
+* 중복 좋아요 방지
 
 ---
 
-# 프로젝트 구조
+# 🏗 Project Structure
 
 ```text
 src/main/java/com/example/community
@@ -85,7 +94,6 @@ src/main/java/com/example/community
 
 ---
 
-````markdown
 # 🔐 Authentication Flow
 
 JWT 기반 Stateless 인증 방식을 적용했습니다.
@@ -104,16 +112,19 @@ JWT 기반 Stateless 인증 방식을 적용했습니다.
 [6] SecurityContext에 인증 정보 저장
         ↓
 [7] 인증된 사용자로 API 접근
+```
 
 Authorization Header 예시:
 
+```http
 Authorization: Bearer {JWT_TOKEN}
+```
 
 Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 인증을 처리했습니다.
 
 ---
 
-# API 응답 구조
+# 📦 API Response
 
 ## 성공 응답
 
@@ -139,11 +150,9 @@ Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 �
 
 ---
 
-# Validation
+# ✅ Validation
 
 DTO 기반 Validation을 적용했습니다.
-
-예시:
 
 ```java
 @NotBlank(message = "사용자명은 필수입니다.")
@@ -164,18 +173,18 @@ Validation 실패 시:
 
 # 🧪 Test & CI
 
-Service Layer 테스트와 MockMvc 기반 Controller 테스트를 작성했습니다.  
+Service Layer 테스트와 MockMvc 기반 Controller 테스트를 작성했습니다.
 또한 GitHub Actions를 통해 push / pull request 시 자동으로 테스트와 빌드가 수행되도록 구성했습니다.
 
 ## Test Coverage
 
-| 구분 | 테스트 내용 |
-|---|---|
-| Service Test | 회원가입, 로그인, 좋아요, 좋아요 취소, 예외 케이스 검증 |
-| Controller Test | MockMvc 기반 API 요청/응답 검증 |
-| Validation Test | 잘못된 요청 값에 대한 400 응답 검증 |
-| Security Test | JWT 미인증 요청에 대한 401 응답 검증 |
-| Exception Test | CustomException 발생 시 ErrorResponse 검증 |
+| 구분              | 테스트 내용                                |
+| --------------- | ------------------------------------- |
+| Service Test    | 회원가입, 로그인, 좋아요, 좋아요 취소, 예외 케이스 검증     |
+| Controller Test | MockMvc 기반 API 요청/응답 검증               |
+| Validation Test | 잘못된 요청 값에 대한 400 응답 검증                |
+| Security Test   | JWT 미인증 요청에 대한 401 응답 검증              |
+| Exception Test  | CustomException 발생 시 ErrorResponse 검증 |
 
 ## CI Pipeline
 
@@ -191,79 +200,47 @@ Gradle Test 실행
 Gradle Build 검증
         ↓
 성공 / 실패 결과 확인
-
----
-
-# Docker 실행
-
-## MySQL 실행
-
-```bash
-docker run --name community-mysql \
--e MYSQL_ROOT_PASSWORD=root1234 \
--e MYSQL_DATABASE=community \
--p 3307:3306 \
--d mysql:8
 ```
 
 ---
 
-# 환경 설정
+# ⚙ Environment
 
-## application.yml
-
-공통 설정 관리
-
-* JWT 설정
-* active profile
-
-## application-dev.yml
-
-개발 환경 설정
-
-* MySQL
-* JPA 설정
-
-## application-test.yml
-
-테스트 환경 설정
-
-* H2 Database
-
-## application-prod.yml
-
-운영 환경 설정
-
-* 환경 변수 기반 datasource
+| Profile | Description    |
+| ------- | -------------- |
+| dev     | MySQL 기반 개발 환경 |
+| test    | H2 기반 테스트 환경   |
+| prod    | 환경 변수 기반 운영 환경 |
 
 ---
 
-# Swagger
+# 📄 API Docs
+
+Swagger(OpenAPI)를 적용하여 API 명세 및 테스트 환경을 구성했습니다.
 
 ```text
 http://localhost:8080/swagger-ui/index.html
 ```
 
-Swagger(OpenAPI)를 적용하여 API 명세 및 테스트 환경을 구성했습니다.
-
 JWT 인증 후 API를 직접 테스트할 수 있도록 구성했습니다.
 
 ---
 
-# Trouble Shooting
+# ⚠ Trouble Shooting
 
 ## N+1 문제 해결
 
-**문제 발견**
-게시글 목록 조회 시 SQL 로그에서 쿼리가 비정상적으로 과다 발생하는 것을 직접 확인.
-`@ManyToOne` 기본 fetch 전략(EAGER)으로 인해 게시글 N개 조회 시 N+1번 쿼리 실행.
+### 문제 발견
 
-**해결 방법**
+게시글 목록 조회 시 SQL 로그에서 쿼리가 비정상적으로 과다 발생하는 것을 직접 확인했습니다.
+`@ManyToOne` 기본 fetch 전략(EAGER)으로 인해 게시글 N개 조회 시 N+1번 쿼리가 실행되었습니다.
+
+### 해결 방법
 
 * `FetchType.LAZY` 적용
 * `JOIN FETCH`로 필요한 경우 한 번에 조회
 
-**성능 측정 결과**
+### 성능 측정 결과
 
 | 데이터 수 | 수정 전 쿼리 | 수정 후 쿼리 | 수정 전 응답 | 수정 후 응답 |
 | ----- | ------- | ------- | ------- | ------- |
@@ -277,15 +254,15 @@ JWT 인증 후 API를 직접 테스트할 수 있도록 구성했습니다.
 
 ### 문제
 
-토큰이 없거나 만료되었을 때 403 Forbidden 반환.
+토큰이 없거나 만료되었을 때 403 Forbidden이 반환되었습니다.
 
 ### 해결
 
-`authenticationEntryPoint`를 추가하여 인증 실패 시 401 Unauthorized 반환하도록 수정.
+`authenticationEntryPoint`를 추가하여 인증 실패 시 401 Unauthorized를 반환하도록 수정했습니다.
 
 ```java
 .exceptionHandling(ex -> ex
-        .authenticationEntryPoint((request, response, e) ->
+    .authenticationEntryPoint((request, response, e) ->
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
     )
 )
@@ -293,49 +270,16 @@ JWT 인증 후 API를 직접 테스트할 수 있도록 구성했습니다.
 
 ---
 
-## Post.viewCount NullPointerException
-
-### 문제
-
-조회수 증가 시 `viewCount++`에서 NullPointerException 발생.
-
-### 원인
-
-`Long viewCount` 초기값이 null 상태.
-
-### 해결
-
-```java
-@Builder.Default
-private Long viewCount = 0L;
-```
-
----
-
-## application-dev.yml 누락으로 인한 실행 실패
-
-### 문제
-
-`spring.profiles.active=dev` 상태에서 datasource 설정 누락.
-
-### 해결
-
-`application-dev.yml` 분리 및 환경별 설정 구성.
-
----
-
 ## Entity 직접 반환 문제
 
 ### 문제
 
-회원가입 응답에서 password 해시값 노출.
+회원가입 응답에서 password 해시값이 노출되는 문제가 있었습니다.
 
 ### 해결
 
-Entity 대신 DTO 반환 구조로 변경.
-
-Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니다.
-이를 통해 password와 같은 민감 정보 노출을 방지하고, API 응답 구조를 안정적으로 관리하도록 개선했습니다.
+Entity 대신 DTO 기반 응답 구조를 적용했습니다.
+민감 정보 노출을 방지하고 API 응답 구조를 안정적으로 관리할 수 있도록 개선했습니다.
 
 ---
 
@@ -378,30 +322,7 @@ Gradle test task에 `test profile`을 명시적으로 적용하여 CI 환경에�
 
 ---
 
-## ObjectMapper Bean 주입 문제
-
-### 문제
-
-Spring Boot 4.x 테스트 환경에서 `ObjectMapper` Bean 자동 주입이 실패했습니다.
-
-### 해결
-
-```java
-@TestConfiguration
-class ControllerTestConfig {
-
-    @Bean
-    ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
-}
-```
-
-테스트 전용 Bean 구성을 통해 Controller 테스트 환경을 안정화했습니다.
-
----
-
-# 개선 예정
+# 🚀 Improvements
 
 * Refresh Token 기반 인증 구조 개선
 * Redis 기반 인증/캐시 관리
@@ -409,9 +330,10 @@ class ControllerTestConfig {
 * Controller/통합 테스트 고도화
 * Docker Compose 운영 환경 개선
 * 배포 자동화(CD) 구축
+
 ---
 
-# 실행 방법
+# ▶ Run
 
 ```bash
 ./gradlew bootRun
@@ -425,41 +347,36 @@ docker compose up --build
 
 ---
 
-# 설계 의도
+# 💡 Design Decisions
 
 ## DTO 기반 응답 구조
 
 Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니다.
-민감 정보 노출을 방지하고, API 스펙 변경 시 유연하게 대응할 수 있도록 설계했습니다.
+민감 정보 노출을 방지하고 API 스펙 변경 시 유연하게 대응할 수 있도록 설계했습니다.
 
 ## Exception Handling
 
-CustomException + ErrorCode 구조를 적용하여
-예외 상황을 일관된 JSON 형태로 반환하도록 구성했습니다.
+CustomException + ErrorCode 구조를 적용하여 예외 상황을 일관된 JSON 형태로 반환하도록 구성했습니다.
 
 ## JWT 인증 처리
 
-JWT 인증 실패 시 403 대신 401 Unauthorized를 반환하도록 수정하여
-HTTP 상태 코드의 의미를 명확하게 구분하도록 개선했습니다.
+JWT 인증 실패 시 403 대신 401 Unauthorized를 반환하도록 수정하여 HTTP 상태 코드의 의미를 명확하게 구분하도록 개선했습니다.
 
 ---
 
-# 회고 / 배운 점
+# 📚 What I Learned
 
 이 프로젝트를 진행하며 단순 CRUD 구현보다,
-인증/예외 처리/Validation/테스트 코드 구조 설계가 백엔드 개발에서 중요하다는 점을 경험했습니다.
+인증/예외 처리/Validation/테스트 코드 구조 설계가
+백엔드 개발에서 중요하다는 점을 경험했습니다.
 
-특히 JWT 인증 흐름과 Spring Security 동작 방식,
-Global Exception Handling 구조를 직접 구현하며 백엔드 구조에 대한 이해를 높일 수 있었습니다.
+특히:
 
----
+* JWT 인증 흐름
+* Spring Security 구조
+* Global Exception Handling
+* 테스트 환경 분리
+* CI 환경 구성
+* N+1 문제 분석 및 개선
 
-# 프로젝트 목표
-
-단순히 동작하는 CRUD가 아니라,
-
-* 왜 이렇게 설계했는지 설명할 수 있는 구조
-* 인증/예외/Validation 흐름을 이해한 구조
-* 실제 운영 환경을 고려한 구조
-
-를 만드는 것을 목표로 개발했습니다.
+을 직접 경험하며 실제 서비스 구조에 대한 이해를 높일 수 있었습니다.
