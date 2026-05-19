@@ -29,7 +29,7 @@ Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지�
 
 등 실제 운영 환경을 고려한 구조를 직접 구성했습니다.
 
----
+
 
 # 🛠 Tech Stack
 
@@ -44,7 +44,7 @@ Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지�
 | CI | GitHub Actions |
 | Docs | Swagger(OpenAPI) |
 
----
+
 
 # ✨ Features
 
