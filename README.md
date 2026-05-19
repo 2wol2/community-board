@@ -266,17 +266,19 @@ Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
 `@ManyToOne` 기본 fetch 전략(EAGER)으로 인해 게시글 N개 조회 시 N+1번 쿼리 실행.
 
 **해결 방법**
-- `FetchType.LAZY` 적용
-- `JOIN FETCH`로 필요한 경우 한 번에 조회
+
+* `FetchType.LAZY` 적용
+* `JOIN FETCH`로 필요한 경우 한 번에 조회
 
 **성능 측정 결과**
 
 | 데이터 수 | 수정 전 쿼리 | 수정 후 쿼리 | 수정 전 응답 | 수정 후 응답 |
-|----------|------------|------------|------------|------------|
-| 10개 | 12개 | 2개 | 86ms | 5ms |
-| 100개 | 102개 | 2개 | 75ms | 11ms |
-| 1000개 | 1,002개 | 2개 | 353ms | 23ms |
+| ----- | ------- | ------- | ------- | ------- |
+| 10개   | 12개     | 2개      | 86ms    | 5ms     |
+| 100개  | 102개    | 2개      | 75ms    | 11ms    |
+| 1000개 | 1,002개  | 2개      | 353ms   | 23ms    |
 
+---
 
 ## JWT 인증 실패 시 403 반환 문제
 
@@ -293,7 +295,7 @@ Swagger에서 JWT 인증 후 API 테스트가 가능합니다.
         .authenticationEntryPoint((request, response, e) ->
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
     )
-            )
+)
 ```
 
 ---
@@ -344,12 +346,74 @@ Entity를 직접 반환하지 않고 DTO 기반 응답 구조를 적용했습니
 
 ---
 
+## Spring Boot 4.x Controller 테스트 환경 구성
+
+### 문제
+
+Spring Boot 4.x 환경에서 기존 테스트 방식(`@WebMvcTest`, `@MockBean`)이 정상 동작하지 않아 Controller 테스트 환경 구성에 어려움이 있었습니다.
+
+### 해결
+
+`@SpringBootTest` 기반으로 테스트 환경을 구성하고,
+
+```java
+MockMvcBuilders.webAppContextSetup(context)
+    .apply(springSecurity())
+```
+
+방식을 사용하여 JWT/Security 흐름을 포함한 Controller 테스트를 구성했습니다.
+
+또한 `@MockitoBean` 기반 Mock 객체를 적용하여 Controller 계층에 집중할 수 있도록 테스트 범위를 분리했습니다.
+
+---
+
+## CI 환경에서 test profile 미적용 문제
+
+### 문제
+
+GitHub Actions 환경에서 `test profile`이 적용되지 않아 H2 대신 MySQL 연결을 시도하며 테스트가 실패했습니다.
+
+### 해결
+
+```gradle
+tasks.named('test') {
+    systemProperty 'spring.profiles.active', 'test'
+}
+```
+
+Gradle test task에 `test profile`을 명시적으로 적용하여 CI 환경에서도 동일한 테스트 환경을 유지하도록 구성했습니다.
+
+---
+
+## ObjectMapper Bean 주입 문제
+
+### 문제
+
+Spring Boot 4.x 테스트 환경에서 `ObjectMapper` Bean 자동 주입이 실패했습니다.
+
+### 해결
+
+```java
+@TestConfiguration
+class ControllerTestConfig {
+
+    @Bean
+    ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}
+```
+
+테스트 전용 Bean 구성을 통해 Controller 테스트 환경을 안정화했습니다.
+
+---
+
 # 개선 예정
 
 * Refresh Token 적용
 * Redis 기반 인증 관리
 * QueryDSL 적용
-* Controller 테스트 추가
+* Controller 테스트 고도화
 * Docker Compose 최적화
 
 ---
