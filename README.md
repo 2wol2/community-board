@@ -33,6 +33,15 @@ Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지�
 
 등 실제 운영 환경을 고려한 구조를 직접 경험하고 구성했습니다.
 
+# 🚀 Key Experiences
+
+- Spring Security + JWT 인증 구조 구현
+- MockMvc 기반 Controller 테스트 작성
+- GitHub Actions 기반 CI 환경 구성
+- N+1 Query 문제 분석 및 성능 개선
+- DTO 기반 API 응답 구조 설계
+- Spring Boot 4.x 테스트 환경 구성 경험
+
 ---
 
 # 🛠 Tech Stack
