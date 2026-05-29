@@ -112,7 +112,10 @@ open build/reports/tests/test/index.html
 - 회원 가입 / 로그인 (JWT Access Token 발급)
 - 게시글 CRUD (작성, 조회, 수정, 삭제, 조회수)
 - 댓글 CRUD
-- 좋아요 등록/취소 (중복 방지)
+- 좋아요 등록/취소
+    - 유니크 제약 조건으로 동시성 문제 해결
+    - @Transactional 추가로 원자성 보장
+    - JMeter 테스트: 100 동시 요청 → 0 중복 발생
 - N+1 쿼리 문제 해결
     - FetchType.LAZY + JOIN FETCH 적용
     - 쿼리 수: 1,002개 → 2개 (99.8% 감소)
@@ -129,44 +132,36 @@ open build/reports/tests/test/index.html
 - Docker Compose 기본 구성
 
 ## 알려진 이슈 및 한계
-1. **좋아요 동시성 문제**
-    - 현재: @Transactional 누락, Race Condition 가능
-    - 증상: 동시 요청 시 중복 좋아요 저장될 수 있음
-
-2. **Refresh Token 미구현**
+1. **Refresh Token 미구현**
     - 현재: Access Token만 사용 (1시간 만료)
     - 한계: 만료 시 재로그인 필요
 
-3. **캐싱 미적용**
+2. **캐싱 미적용**
     - 현재: 좋아요 수 조회 시 매번 COUNT 쿼리
     - 영향: 조회 빈번한 게시글은 DB 부하
 
-4. **환경 설정**
+3. **환경 설정**
     - test/prod 환경만 존재 (dev 환경 별도 없음)
     - application.yml이 기본 설정 역할
 
 ## 앞으로 구현할 기능 (우선순위)
-1. **좋아요 동시성 제어** (높음)
-    - 유니크 제약 조건 또는 낙관적/비관적 락 적용
-    - 부하 테스트로 검증
-
-2. **Redis 캐싱 도입** (높음)
+1. **Redis 캐싱 도입** (높음)
     - 좋아요 수 캐싱
     - 성능 측정 및 개선 수치화
 
-3. **Refresh Token 구현** (중)
+2. **Refresh Token 구현** (중)
     - Access Token (15분) + Refresh Token (7일)
     - Redis 기반 토큰 저장/관리
 
-4. **QueryDSL 도입** (중)
+3. **QueryDSL 도입** (중)
     - 동적 검색 쿼리 구현
     - 복잡한 조회 조건 처리
 
-5. **통합 테스트 고도화** (중)
+4. **통합 테스트 고도화** (중)
     - TestContainers로 실제 DB 테스트
     - JMeter 부하 테스트
 
-6. **CI/CD 자동화** (낮음)
+5. **CI/CD 자동화** (낮음)
     - GitHub Actions CD 구축
     - Docker 이미지 자동 배포
 
