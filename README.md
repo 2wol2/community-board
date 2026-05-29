@@ -29,7 +29,7 @@ Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지�
 * MockMvc 기반 테스트 코드
 * GitHub Actions CI
 * Docker 기반 실행 환경
-* dev/test/prod 환경 분리
+* test/prod 환경 분리
 
 등 실제 운영 환경을 고려한 구조를 직접 경험하고 구성했습니다.
 
@@ -195,9 +195,8 @@ Gradle Build 검증
 
 # ⚙ Environment
 
-- dev : MySQL 기반 개발 환경
 - test : H2 기반 테스트 환경
-- prod : 환경 변수 기반 운영 환경
+- prod : 환경 변수 기반 운영 환경 (MySQL)
 
 ---
 
@@ -326,7 +325,7 @@ docker compose up --build
 - DTO 기반 응답 구조로 민감 정보 노출 방지
 - CustomException + ErrorCode 기반 예외 처리 구조 적용
 - JWT 인증 실패 시 401 Unauthorized 반환
-- dev/test/prod 환경 분리
+- test/prod 환경 분리
 ---
 
 # 📚 What I Learned
