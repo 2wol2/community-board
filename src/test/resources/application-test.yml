@@ -9,6 +9,13 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+  cache:
+    type: simple  # 테스트 환경에서는 간단한 메모리 캐시 사용
+
+cache:
+  default-ttl: 30
+  like-count-ttl: 10
+
 jwt:
   secret: test-secret-key-test-secret-key-123456
   expiration: 3600000

@@ -10,8 +10,11 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/community
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root1234
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - db
+      - redis
     restart: on-failure
 
   db:
@@ -24,5 +27,14 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
 volumes:
   mysql_data:
+  redis_data:

@@ -1,6 +1,14 @@
 spring:
   profiles:
     active: dev
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+cache:
+  default-ttl: 30  # minutes
+  like-count-ttl: 10  # minutes
 
 jwt:
   secret: ${JWT_SECRET:local-dev-secret-key-local-dev-secret-key}

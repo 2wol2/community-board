@@ -4,10 +4,13 @@ import com.example.community.domain.post.Post;
 import com.example.community.domain.post.PostRepository;
 import com.example.community.domain.user.User;
 import com.example.community.domain.user.UserRepository;
+import com.example.community.global.config.CacheConfig;
 import com.example.community.global.exception.CustomException;
 import com.example.community.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ public class PostLikeService {
     private final UserRepository userRepository;
 
     @Transactional
+    @CacheEvict(value = CacheConfig.LIKE_COUNT_CACHE, key = "#postId", beforeInvocation = false)
     public void likePost(Long postId, String username) {
 
         User user = userRepository.findByUsername(username)
@@ -49,6 +53,7 @@ public class PostLikeService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.LIKE_COUNT_CACHE, key = "#postId", beforeInvocation = false)
     public void unlikePost(Long postId, String username) {
 
         User user = userRepository.findByUsername(username)
@@ -64,6 +69,8 @@ public class PostLikeService {
         postLikeRepository.deleteByUserAndPost(user, post);
     }
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.LIKE_COUNT_CACHE, key = "#postId")
     public long countLikes(Long postId){
         return postLikeRepository.countByPostId(postId);
     }
