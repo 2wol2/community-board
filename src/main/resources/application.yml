@@ -12,4 +12,5 @@ cache:
 
 jwt:
   secret: ${JWT_SECRET:local-dev-secret-key-local-dev-secret-key}
-  expiration: ${JWT_EXPIRATION:3600000}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}  # 15분
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7일

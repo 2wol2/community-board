@@ -1,5 +1,6 @@
 package com.example.community.domain.user;
 
+import com.example.community.domain.user.dto.LoginResponseDto;
 import com.example.community.global.exception.CustomException;
 import com.example.community.global.exception.ErrorCode;
 import com.example.community.global.jwt.JwtTokenProvider;
@@ -10,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -27,19 +29,29 @@ class AuthServiceTest {
     @Mock UserRepository userRepository;
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtTokenProvider jwtTokenProvider;
+    @Mock RefreshTokenRepository refreshTokenRepository;
     @InjectMocks AuthService authService;
 
     @Test
-    @DisplayName("로그인 성공 시 토큰 반환")
+    @DisplayName("로그인 성공 시 Access Token과 Refresh Token 반환")
     void login_success() {
+        // given
+        ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
+
         given(userRepository.findByUsername("user1")).willReturn(Optional.of(createUser()));
         given(passwordEncoder.matches("password1", "encoded")).willReturn(true);
-        given(jwtTokenProvider.createToken("user1")).willReturn("jwt-token");
+        given(jwtTokenProvider.createAccessToken("user1")).willReturn("access-token");
+        given(jwtTokenProvider.createRefreshToken("user1")).willReturn("refresh-token");
 
-        String token = authService.login("user1", "password1");
+        // when
+        LoginResponseDto response = authService.login("user1", "password1");
 
-        assertThat(token).isEqualTo("jwt-token");
-        verify(jwtTokenProvider).createToken("user1");
+        // then
+        assertThat(response.getAccessToken()).isEqualTo("access-token");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh-token");
+        verify(jwtTokenProvider).createAccessToken("user1");
+        verify(jwtTokenProvider).createRefreshToken("user1");
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
     @Test
@@ -72,6 +84,7 @@ class AuthServiceTest {
 
         assertThat(ex.getErrorCode())
                 .isEqualTo(ErrorCode.INVALID_PASSWORD);
-        verify(jwtTokenProvider, never()).createToken(any());
+        verify(jwtTokenProvider, never()).createAccessToken(any());
+        verify(jwtTokenProvider, never()).createRefreshToken(any());
     }
 }

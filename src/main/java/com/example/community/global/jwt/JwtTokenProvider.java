@@ -16,8 +16,11 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
-    private long expiredTime;
+    @Value("${jwt.access-token-expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
+    private long refreshTokenExpiration;
 
     private SecretKey key;
 
@@ -39,15 +42,23 @@ public class JwtTokenProvider {
         );
     }
 
-    public String createToken(String username) {
+    private String createToken(String username, long expiration) {
         long now = System.currentTimeMillis();
 
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date(now))
-                .expiration(new Date(now + expiredTime))
+                .expiration(new Date(now + expiration))
                 .signWith(key)
                 .compact();
+    }
+
+    public String createAccessToken(String username) {
+        return createToken(username, accessTokenExpiration);
+    }
+
+    public String createRefreshToken(String username) {
+        return createToken(username, refreshTokenExpiration);
     }
 
     public String getUsername(String token) {
