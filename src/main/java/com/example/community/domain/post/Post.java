@@ -37,8 +37,16 @@ public class Post {
     @Column(name = "view_count")
     private long viewCount = 0;
 
-    public void increaseView(){
+    /**
+     * 조회수 증가
+     *
+     * @return 랭킹 업데이트가 필요한지 여부 (10의 배수일 때만 true)
+     */
+    public boolean increaseView(){
         this.viewCount++;
+        // 10번마다 한 번만 랭킹 업데이트 (1, 11, 21, 31, ...)
+        // 조회수는 좋아요보다 덜 중요하므로 이벤트 발행 빈도 감소
+        return this.viewCount % 10 == 0;
     }
 
 }

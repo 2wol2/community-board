@@ -64,10 +64,15 @@ public class PostService {
 
         Post post = postRepository.findPostWithComments(id);
 
-        post.increaseView();
+        // 조회수 증가 (10의 배수일 때만 true 반환)
+        boolean shouldUpdateRanking = post.increaseView();
 
-        // 조회수 증가 후 랭킹 업데이트 이벤트 발행
-        publishRankingEvent(id);
+        // 조회수가 10, 20, 30, ... 일 때만 랭킹 업데이트
+        // 조회수는 좋아요보다 덜 중요하므로 이벤트 발행 빈도를 줄임
+        if (shouldUpdateRanking) {
+            publishRankingEvent(id);
+            log.debug("[조회수 랭킹 이벤트] postId: {}, viewCount: {}", id, post.getViewCount());
+        }
 
         List<CommentDto> comments = post.getComments()
                 .stream()

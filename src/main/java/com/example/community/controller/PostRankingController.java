@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 게시글 랭킹 API 컨트롤러
@@ -50,6 +52,24 @@ public class PostRankingController {
         Set<ZSetOperations.TypedTuple<String>> rankingWithScores =
                 rankingService.getTopRankingWithScores(topN);
 
+        // 1. postId 목록 추출
+        List<Long> postIds = rankingWithScores.stream()
+                .map(tuple -> Long.valueOf(tuple.getValue()))
+                .toList();
+
+        if (postIds.isEmpty()) {
+            return ApiResponse.success(List.of());
+        }
+
+        // 2. Post 일괄 조회 (1개 쿼리)
+        List<Post> posts = postRepository.findAllById(postIds);
+        Map<Long, Post> postMap = posts.stream()
+                .collect(Collectors.toMap(Post::getId, post -> post));
+
+        // 3. 좋아요 수 일괄 조회 (1개 쿼리)
+        Map<Long, Long> likeCountMap = postLikeRepository.countLikesByPostIdsAsMap(postIds);
+
+        // 4. 결과 조합
         List<RankingPostDto> result = new ArrayList<>();
         int rank = 1;
 
@@ -57,18 +77,18 @@ public class PostRankingController {
             Long postId = Long.valueOf(tuple.getValue());
             Double score = tuple.getScore();
 
-            Post post = postRepository.findById(postId).orElse(null);
+            Post post = postMap.get(postId);
             if (post == null) {
                 continue;
             }
 
-            long likeCount = postLikeRepository.countByPostId(postId);
+            long likeCount = likeCountMap.getOrDefault(postId, 0L);
 
             RankingPostDto dto = RankingPostDto.of(post, likeCount, score, rank++);
             result.add(dto);
         }
 
-        log.info("[랭킹 API] Top {} 조회 완료: {}건", topN, result.size());
+        log.info("[랭킹 API] Top {} 조회 완료: {}건 (쿼리 2개)", topN, result.size());
 
         return ApiResponse.success(result);
     }
@@ -84,43 +104,56 @@ public class PostRankingController {
     public ApiResponse<List<RankingPostDto>> getTopRankingFromDB(
             @RequestParam(defaultValue = "10") int topN) {
 
+        // 1. 모든 게시글 조회 (1개 쿼리)
         List<Post> posts = postRepository.findAll();
 
-        // 점수 계산 및 정렬
-        List<RankingPostDto> result = new ArrayList<>();
+        if (posts.isEmpty()) {
+            return ApiResponse.success(List.of());
+        }
 
+        // 2. 모든 게시글의 좋아요 수 일괄 조회 (1개 쿼리)
+        List<Long> postIds = posts.stream()
+                .map(Post::getId)
+                .toList();
+        Map<Long, Long> likeCountMap = postLikeRepository.countLikesByPostIdsAsMap(postIds);
+
+        // 3. 점수 계산
+        List<PostWithScore> postsWithScores = new ArrayList<>();
         for (Post post : posts) {
-            long likeCount = postLikeRepository.countByPostId(post.getId());
+            long likeCount = likeCountMap.getOrDefault(post.getId(), 0L);
             long viewCount = post.getViewCount();
             double score = likeCount * 10.0 + viewCount * 1.0;
 
-            result.add(RankingPostDto.of(post, likeCount, score, 0));
+            postsWithScores.add(new PostWithScore(post, likeCount, score));
         }
 
-        // 점수 높은 순 정렬
-        result.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
+        // 4. 점수 높은 순 정렬
+        postsWithScores.sort((a, b) -> Double.compare(b.score, a.score));
 
-        // Top N만 추출
-        List<RankingPostDto> topPosts = result.stream()
-                .limit(topN)
-                .toList();
-
-        // 순위 부여
+        // 5. Top N만 추출 및 순위 부여
         List<RankingPostDto> rankedPosts = new ArrayList<>();
-        for (int i = 0; i < topPosts.size(); i++) {
-            RankingPostDto dto = topPosts.get(i);
-            rankedPosts.add(new RankingPostDto(
-                    dto.getId(),
-                    dto.getTitle(),
-                    dto.getLikeCount(),
-                    dto.getViewCount(),
-                    dto.getScore(),
-                    i + 1
-            ));
+        for (int i = 0; i < Math.min(topN, postsWithScores.size()); i++) {
+            PostWithScore pws = postsWithScores.get(i);
+            rankedPosts.add(RankingPostDto.of(pws.post, pws.likeCount, pws.score, i + 1));
         }
 
-        log.info("[랭킹 API - DB] Top {} 조회 완료: {}건", topN, rankedPosts.size());
+        log.info("[랭킹 API - DB] Top {} 조회 완료: {}건 (쿼리 2개)", topN, rankedPosts.size());
 
         return ApiResponse.success(rankedPosts);
+    }
+
+    /**
+     * 게시글 + 점수 래퍼 클래스
+     */
+    private static class PostWithScore {
+        Post post;
+        long likeCount;
+        double score;
+
+        PostWithScore(Post post, long likeCount, double score) {
+            this.post = post;
+            this.likeCount = likeCount;
+            this.score = score;
+        }
     }
 }
