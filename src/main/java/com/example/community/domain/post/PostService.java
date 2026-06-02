@@ -1,12 +1,16 @@
 package com.example.community.domain.post;
 import com.example.community.domain.comment.dto.CommentDto;
+import com.example.community.domain.like.PostLikeRepository;
 import com.example.community.domain.post.dto.PostListDto;
 import com.example.community.domain.post.dto.PostResponseDto;
+import com.example.community.domain.post.event.PostRankingEvent;
 import com.example.community.domain.user.User;
 import com.example.community.domain.user.UserRepository;
 import com.example.community.global.exception.CustomException;
 import com.example.community.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,12 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PostListDto create(String username, String title, String content) {
 
@@ -58,6 +65,9 @@ public class PostService {
         Post post = postRepository.findPostWithComments(id);
 
         post.increaseView();
+
+        // 조회수 증가 후 랭킹 업데이트 이벤트 발행
+        publishRankingEvent(id);
 
         List<CommentDto> comments = post.getComments()
                 .stream()
@@ -112,5 +122,26 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         postRepository.delete(post);
+    }
+
+    /**
+     * 랭킹 업데이트 이벤트 발행
+     *
+     * 조회수 증가 후 최신 좋아요 수와 조회수를 조회하여
+     * 이벤트를 발행합니다. 이벤트는 @Async로 비동기 처리됩니다.
+     *
+     * @param postId 게시글 ID
+     */
+    private void publishRankingEvent(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        long likeCount = postLikeRepository.countByPostId(postId);
+        long viewCount = post.getViewCount();
+
+        PostRankingEvent event = new PostRankingEvent(postId, likeCount, viewCount);
+        eventPublisher.publishEvent(event);
+
+        log.debug("[이벤트 발행] postId: {}, likeCount: {}, viewCount: {}", postId, likeCount, viewCount);
     }
 }
