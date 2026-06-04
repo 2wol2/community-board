@@ -130,6 +130,25 @@ public class PostService {
     }
 
     /**
+     * 스터디 검색 (제목/내용 + 카테고리 + 모집 상태 필터)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostListDto> searchStudies(String keyword, Category category, RecruitStatus status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return postRepository.searchStudies(keyword, category, status, pageable)
+                .map(post -> PostListDto.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .content(post.getContent())
+                        .category(post.getCategory())
+                        .status(post.getStatus())
+                        .maxMembers(post.getMaxMembers())
+                        .deadline(post.getDeadline())
+                        .createdAt(post.getCreatedAt())
+                        .build());
+    }
+
+    /**
      * 랭킹 업데이트 이벤트 발행
      *
      * 조회수 증가 후 최신 좋아요 수와 조회수를 조회하여
@@ -149,4 +168,5 @@ public class PostService {
 
         log.debug("[이벤트 발행] postId: {}, likeCount: {}, viewCount: {}", postId, likeCount, viewCount);
     }
+
 }
