@@ -1,7 +1,7 @@
 package com.example.community.domain.application;
 
-import com.example.community.domain.application.dto.ApplicationRequestDto;
-import com.example.community.domain.application.dto.ApplicationResponseDto;
+import com.example.community.domain.application.dto.StudyApplicationRequestDto;
+import com.example.community.domain.application.dto.StudyApplicationResponseDto;
 import com.example.community.domain.post.Post;
 import com.example.community.domain.post.PostRepository;
 import com.example.community.domain.post.RecruitStatus;
@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ApplicationService {
+public class StudyApplicationService {
 
-    private final ApplicationRepository applicationRepository;
+    private final StudyApplicationRepository applicationRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
@@ -30,7 +30,7 @@ public class ApplicationService {
      * 스터디 지원하기
      */
     @Transactional
-    public ApplicationResponseDto apply(Long postId, String username, ApplicationRequestDto requestDto) {
+    public StudyApplicationResponseDto apply(Long postId, String username, StudyApplicationRequestDto requestDto) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -53,24 +53,24 @@ public class ApplicationService {
         }
 
         // 지원 생성
-        Application application = Application.builder()
+        StudyApplication application = StudyApplication.builder()
                 .user(user)
                 .post(post)
                 .message(requestDto.getMessage())
                 .status(ApplicationStatus.PENDING)
                 .build();
 
-        Application saved = applicationRepository.save(application);
+        StudyApplication saved = applicationRepository.save(application);
         log.info("[지원] postId: {}, username: {}", postId, username);
 
-        return ApplicationResponseDto.from(saved);
+        return StudyApplicationResponseDto.from(saved);
     }
 
     /**
      * 특정 스터디의 지원 목록 조회 (스터디장만 가능)
      */
     @Transactional(readOnly = true)
-    public List<ApplicationResponseDto> getApplicationsByPost(Long postId, String username) {
+    public List<StudyApplicationResponseDto> getApplicationsByPost(Long postId, String username) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
@@ -80,7 +80,7 @@ public class ApplicationService {
         }
 
         return applicationRepository.findByPost(post).stream()
-                .map(ApplicationResponseDto::from)
+                .map(StudyApplicationResponseDto::from)
                 .collect(Collectors.toList());
     }
 
@@ -88,12 +88,12 @@ public class ApplicationService {
      * 내가 지원한 스터디 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<ApplicationResponseDto> getMyApplications(String username) {
+    public List<StudyApplicationResponseDto> getMyApplications(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         return applicationRepository.findByUser(user).stream()
-                .map(ApplicationResponseDto::from)
+                .map(StudyApplicationResponseDto::from)
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +102,7 @@ public class ApplicationService {
      */
     @Transactional
     public void acceptApplication(Long applicationId, String username) {
-        Application application = applicationRepository.findById(applicationId)
+        StudyApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.APPLICATION_NOT_FOUND));
 
         // 스터디장 확인
@@ -125,7 +125,7 @@ public class ApplicationService {
      */
     @Transactional
     public void rejectApplication(Long applicationId, String username) {
-        Application application = applicationRepository.findById(applicationId)
+        StudyApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.APPLICATION_NOT_FOUND));
 
         // 스터디장 확인

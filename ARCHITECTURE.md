@@ -286,31 +286,35 @@
         │                        │                 │
         │                        │                 │
         ▼                        ▼                 ▼
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│     posts       │      │    comments     │      │   post_likes    │
-├─────────────────┤      ├─────────────────┤      ├─────────────────┤
-│ id          PK  │◀─┐   │ id          PK  │      │ id          PK  │
-│ user_id     FK  │  │   │ post_id     FK  │      │ user_id     FK  │
-│ title       NN  │  │   │ user_id     FK  │      │ post_id     FK  │
-│ content     NN  │  │   │ content     NN  │      │ created_at      │
-│ view_count      │  │   │ created_at      │      │                 │
-│ created_at      │  │   │ updated_at      │      │ 🔒 UNIQUE       │
-│ updated_at      │  │   └─────────────────┘      │ (user_id,       │
-└─────────────────┘  │                            │  post_id)       │
-        │            │                            │                 │
-        │ 1:N        └────────────────────────────│ ⭐ 동시성 제어   │
-        │                                         │    핵심          │
-        ▼                                         └─────────────────┘
-┌─────────────────┐
-│   comments      │
-├─────────────────┤
-│ id          PK  │
-│ post_id     FK  │
-│ user_id     FK  │
-│ content     NN  │
-│ created_at      │
-│ updated_at      │
-└─────────────────┘
+┌──────────────────────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│          posts (스터디 모집)      │  │    comments     │  │   post_likes    │
+├──────────────────────────────────┤  ├─────────────────┤  ├─────────────────┤
+│ id              PK               │◀─┤ id          PK  │  │ id          PK  │
+│ user_id         FK               │  │ post_id     FK  │  │ user_id     FK  │
+│ title           NN               │  │ user_id     FK  │  │ post_id     FK  │
+│ content         NN               │  │ content     NN  │  │ created_at      │
+│ view_count                       │  │ created_at      │  │                 │
+│ category        ENUM (스터디분류)│  │ updated_at      │  │ 🔒 UNIQUE       │
+│ recruit_status  ENUM (모집상태)  │  └─────────────────┘  │ (user_id,       │
+│ max_participants INT             │                       │  post_id)       │
+│ deadline        DATE             │                       │                 │
+│ created_at                       │                       │ ⭐ 동시성 제어   │
+│ updated_at                       │                       │    핵심          │
+└────────┬─────────────────────────┘                       └─────────────────┘
+         │ 1:N
+         ▼
+┌─────────────────────────────┐
+│     applications (지원)     │
+├─────────────────────────────┤
+│ id              PK          │
+│ post_id         FK          │
+│ user_id         FK          │
+│ message         TEXT        │
+│ status          ENUM        │
+│   (PENDING/ACCEPTED/...)    │
+│ created_at                  │
+│ updated_at                  │
+└─────────────────────────────┘
 
 
 [인덱스 전략]
@@ -323,17 +327,23 @@ users:
 posts:
   - PRIMARY KEY (id)
   - INDEX (user_id)
-  - INDEX (created_at DESC)  ← 최신 게시글 조회 최적화
+  - INDEX (created_at DESC)
+  - INDEX (category, recruit_status)  ← 스터디 검색 최적화
 
 comments:
   - PRIMARY KEY (id)
-  - INDEX (post_id, created_at)  ← 게시글별 댓글 조회 최적화
+  - INDEX (post_id, created_at)
   - INDEX (user_id)
 
 post_likes:
   - PRIMARY KEY (id)
   - UNIQUE INDEX (user_id, post_id)  ← 동시성 제어
   - INDEX (post_id)  ← 좋아요 수 COUNT 최적화
+
+applications:
+  - PRIMARY KEY (id)
+  - INDEX (post_id, status)  ← 모집글별 지원자 조회
+  - INDEX (user_id)  ← 사용자별 지원 내역
 ```
 
 ---
@@ -385,6 +395,30 @@ post_likes:
 │  - Cache Hit: O(1) - 0.1ms                     │
 │  - Cache Miss: DB COUNT - 10ms                 │
 │  - DB 부하: 90% 이상 감소 (캐시 히트율 기준)   │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  [Key Pattern 3: Ranking]                      │
+│                                                 │
+│  Key: post:ranking                             │
+│  Type: Sorted Set                              │
+│  TTL: 없음 (영구)                              │
+│                                                 │
+│  Structure:                                     │
+│  {                                              │
+│    "123": 530.0,  // postId: score            │
+│    "456": 420.0,  // score = likeCount*10      │
+│    "789": 380.0   //        + viewCount        │
+│  }                                              │
+│                                                 │
+│  Usage:                                         │
+│  - 점수 업데이트: ZADD post:ranking 530 "123"  │
+│  - Top 10 조회: ZREVRANGE post:ranking 0 9     │
+│  - 이벤트 기반: 좋아요/조회 시 비동기 업데이트 │
+│                                                 │
+│  Performance:                                   │
+│  - 조회: O(log N + M) - M은 조회 개수          │
+│  - 1,000개 기준: 130ms (DB 761ms 대비 83% 개선)│
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```

@@ -1,6 +1,6 @@
 package com.example.community.domain.application.dto;
 
-import com.example.community.domain.application.Application;
+import com.example.community.domain.application.StudyApplication;
 import com.example.community.domain.application.ApplicationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-public class ApplicationResponseDto {
+public class StudyApplicationResponseDto {
 
     private Long id;
     private Long postId;
@@ -22,8 +22,8 @@ public class ApplicationResponseDto {
     private String message;
     private LocalDateTime createdAt;
 
-    public static ApplicationResponseDto from(Application application) {
-        return ApplicationResponseDto.builder()
+    public static StudyApplicationResponseDto from(StudyApplication application) {
+        return StudyApplicationResponseDto.builder()
                 .id(application.getId())
                 .postId(application.getPost().getId())
                 .postTitle(application.getPost().getTitle())

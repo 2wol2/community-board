@@ -1146,11 +1146,47 @@ void testSaveRefreshToken() {
 
 ---
 
+## 6. Redis Sorted Set 랭킹 시스템
+
+### 📌 문제
+인기 스터디 Top 10 조회 시 매번 전체 게시글 정렬 (DB ORDER BY)
+
+### 🔍 원인
+- 시간 복잡도: O(N log N) - 전체 게시글 수에 비례
+- 1,000개 게시글: 761ms, 처리량 131 req/s
+- 데이터 증가 시 성능 급격히 저하
+
+### ✅ 해결
+Redis Sorted Set으로 실시간 랭킹 유지
+
+```java
+// 점수 계산 및 저장 (이벤트 기반 비동기)
+@EventListener
+@Async
+public void handlePostRankingEvent(PostRankingEvent event) {
+    double score = (likeCount * 10.0) + viewCount;
+    redisTemplate.opsForZSet().add("post:ranking", postId, score);
+}
+
+// 조회 (O(log N))
+Set<String> topN = redisTemplate.opsForZSet()
+    .reverseRange("post:ranking", 0, 9);
+```
+
+### 📈 결과
+**부하 테스트 (1,000 요청 / 100 동시 접속)**
+- 100개: Redis 164ms vs DB 252ms (35% 개선)
+- 1,000개: Redis 130ms vs DB 761ms (83% 개선)
+- 처리량: Redis 772 req/s vs DB 131 req/s (5.9배)
+
+---
+
 ## 📊 종합 성과 요약
 
 | 문제 | 핵심 해결책 | 정량적 성과 |
 |------|-----------|-------------|
 | **N+1 쿼리** | JOIN FETCH | 쿼리 99.8% 감소, 응답 93% 개선 |
+| **랭킹 성능** | Redis Sorted Set | 83% 개선 (1,000개 기준) |
 | **동시성 제어** | DB 유니크 제약 | 중복 100% 방지 |
 | **토큰 관리** | Refresh Token + Redis | 보안 강화 + UX 개선 |
 | **DB 부하** | Redis 캐싱 | DB 쿼리 95% 감소 |

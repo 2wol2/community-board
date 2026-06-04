@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Application {
+public class StudyApplication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,8 +1,8 @@
 package com.example.community.controller;
 
-import com.example.community.domain.application.ApplicationService;
-import com.example.community.domain.application.dto.ApplicationRequestDto;
-import com.example.community.domain.application.dto.ApplicationResponseDto;
+import com.example.community.domain.application.StudyApplicationService;
+import com.example.community.domain.application.dto.StudyApplicationRequestDto;
+import com.example.community.domain.application.dto.StudyApplicationResponseDto;
 import com.example.community.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,38 +19,38 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class ApplicationController {
+public class StudyApplicationController {
 
-    private final ApplicationService applicationService;
+    private final StudyApplicationService applicationService;
 
     @Operation(summary = "스터디 지원하기")
     @PostMapping("/posts/{postId}/apply")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<ApplicationResponseDto> apply(
+    public ApiResponse<StudyApplicationResponseDto> apply(
             @PathVariable Long postId,
-            @Valid @RequestBody ApplicationRequestDto requestDto,
+            @Valid @RequestBody StudyApplicationRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        ApplicationResponseDto response = applicationService.apply(postId, userDetails.getUsername(), requestDto);
+        StudyApplicationResponseDto response = applicationService.apply(postId, userDetails.getUsername(), requestDto);
         return ApiResponse.success(response);
     }
 
     @Operation(summary = "스터디 지원 목록 조회 (스터디장 전용)")
     @GetMapping("/posts/{postId}/applications")
-    public ApiResponse<List<ApplicationResponseDto>> getApplicationsByPost(
+    public ApiResponse<List<StudyApplicationResponseDto>> getApplicationsByPost(
             @PathVariable Long postId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        List<ApplicationResponseDto> applications = applicationService.getApplicationsByPost(postId, userDetails.getUsername());
+        List<StudyApplicationResponseDto> applications = applicationService.getApplicationsByPost(postId, userDetails.getUsername());
         return ApiResponse.success(applications);
     }
 
     @Operation(summary = "내가 지원한 스터디 목록")
     @GetMapping("/applications/my")
-    public ApiResponse<List<ApplicationResponseDto>> getMyApplications(
+    public ApiResponse<List<StudyApplicationResponseDto>> getMyApplications(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        List<ApplicationResponseDto> applications = applicationService.getMyApplications(userDetails.getUsername());
+        List<StudyApplicationResponseDto> applications = applicationService.getMyApplications(userDetails.getUsername());
         return ApiResponse.success(applications);
     }
 
