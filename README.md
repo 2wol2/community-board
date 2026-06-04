@@ -1,342 +1,294 @@
-# Community Board API Server
+# DevMate - 개발 스터디 모집 플랫폼
 
 ![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.x-brightgreen)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.3-brightgreen)
 ![MySQL](https://img.shields.io/badge/MySQL-8-blue)
-![JWT](https://img.shields.io/badge/JWT-Auth-black)
+![Redis](https://img.shields.io/badge/Redis-7-red)
 ![CI](https://github.com/2wol2/community-board/actions/workflows/ci.yml/badge.svg)
 
-> JWT 인증 기반 커뮤니티 API 서버 프로젝트입니다.
+> **"개발자들이 함께 성장할 스터디를 찾고, 실시간 인기 스터디를 발견하는 플랫폼"**
 
-Spring Boot를 공부하며 기본적인 CRUD 기능은 구현할 수 있었지만,
-실제 서비스 구조에서 중요한 인증, 예외 처리, 테스트, 환경 분리 경험은 부족하다고 느꼈습니다.
-
-그래서 단순 기능 구현보다
-“왜 이렇게 설계했는지 설명 가능한 프로젝트”
-를 목표로 JWT 인증, Validation, 테스트 코드, CI 환경까지 직접 구성하며 프로젝트를 진행했습니다.
+📋 **Portfolio**: [PORTFOLIO_COMPACT.md](./PORTFOLIO_COMPACT.md) (면접용 요약본)
+📚 **Technical Details**: [PROBLEM_SOLVING.md](./PROBLEM_SOLVING.md) | [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
 
-# 📌 Overview
+## 💡 왜 이 프로젝트를 만들었나요?
 
-이 프로젝트는 게시글, 댓글, 좋아요 기능을 제공하는 REST API 서버입니다.
+### 1. **실시간 인기 스터디 발견**
+- **문제**: 수백 개의 스터디 중 어떤 것이 인기 있는지 알기 어렵다
+- **해결**: Redis Sorted Set을 활용한 실시간 랭킹 시스템
+- **기술 선택 이유**:
+  - 좋아요/조회수 기반 점수 계산 (좋아요 x10 + 조회수 x1)
+  - 이벤트 기반 비동기 점수 업데이트로 DB 부하 최소화
+  - O(log N) 시간복잡도로 빠른 Top N 조회
 
-단순 CRUD 구현에서 끝나지 않고:
+### 2. **인기 스터디의 좋아요 부하 처리**
+- **문제**: 인기 스터디 조회 시 좋아요 수 조회로 DB 부하 증가
+- **해결**: Redis 캐싱 (TTL 10분)
+- **성과**: 캐시 히트 시 DB 쿼리 0회
 
-* JWT 기반 인증/인가
-* Validation 및 예외 처리
-* DTO 기반 응답 구조
-* MockMvc 기반 테스트 코드
-* GitHub Actions CI
-* Docker 기반 실행 환경
-* test/prod 환경 분리
+### 3. **좋아요 중복 방지 (동시성 제어)**
+- **문제**: 동시에 100명이 좋아요 클릭 시 중복 발생 가능
+- **해결**: 유니크 제약 조건 + @Transactional
+- **성과**: JMeter 테스트 결과 중복 0건 발생
 
-등 실제 운영 환경을 고려한 구조를 직접 경험하고 구성했습니다.
-
----
-
-# 🚀 Key Experiences
-
-- Spring Security + JWT 인증 구조 구현
-- MockMvc 기반 Controller 테스트 작성
-- GitHub Actions 기반 CI 환경 구성
-- N+1 Query 문제 분석 및 성능 개선
-- DTO 기반 API 응답 구조 설계
-- Spring Boot 4.x 테스트 환경 구성 경험
+### 4. **N+1 쿼리 문제**
+- **문제**: 게시글 목록 조회 시 1,002개 쿼리 발생
+- **해결**: FetchType.LAZY + JOIN FETCH
+- **성과**: 99.8% 감소 (1,002개 → 2개), 응답속도 93% 개선 (353ms → 23ms)
 
 ---
 
-# 🛠 Tech Stack
+## 🎯 주요 기능
 
-| Category | Skills                                    |
-| -------- | ----------------------------------------- |
-| Backend  | Java 17, Spring Boot 4.x, Spring Security |
-| Database | MySQL 8, H2                               |
-| ORM      | Spring Data JPA (Hibernate)               |
-| Auth     | JWT                                       |
-| Infra    | Docker, Docker Compose                    |
-| Test     | JUnit5, Mockito, MockMvc                  |
-| CI       | GitHub Actions                            |
-| Docs     | Swagger(OpenAPI)                          |
+### 스터디 모집
+- 📝 **스터디 모집글 작성** (카테고리, 모집 인원, 마감일)
+- 🔍 **검색 & 필터링** (제목/내용, 카테고리, 모집 상태)
+- 📊 **실시간 인기 스터디 랭킹** (Redis Sorted Set)
+- ⏰ **자동 마감** (스프링 스케줄러, 매일 자정 실행)
 
----
+### 지원 시스템
+- ✋ **스터디 지원하기** (지원 메시지 작성)
+- ✅ **지원 수락/거절** (스터디장 전용)
+- 📋 **지원 목록 관리** (내가 지원한 스터디, 받은 지원)
 
-# ✨ Features
+### 인증 & 보안
+- 🔐 **JWT 이중 토큰** (Access Token + Refresh Token)
+- 🔄 **Refresh Token Rotation** (토큰 재사용 방지)
+- 🗄️ **Redis 기반 토큰 관리** (TTL 자동 만료)
 
-## 👤 User
-
-* 회원가입
-* 로그인(JWT 발급)
-* 사용자 조회
-
-## 📝 Post
-
-* 게시글 CRUD
-* 조회수 증가
-
-## 💬 Comment
-
-* 댓글 작성/삭제
-
-## ❤️ Like
-
-* 좋아요 등록/취소
-* 중복 좋아요 방지
+### 성능 최적화
+- ⚡ **N+1 쿼리 해결** (99.8% 개선)
+- 💾 **Redis 캐싱** (좋아요 수, Refresh Token)
+- 🔒 **동시성 제어** (좋아요 중복 방지)
+- 📈 **이벤트 기반 비동기 처리** (랭킹 업데이트)
 
 ---
 
-# 🏗 Project Structure
+## 🛠 기술 스택
 
-```text
-src/main/java/com/example/community
-├── domain
-│   ├── user
-│   ├── post
-│   ├── comment
-│   └── like
-├── global
-│   ├── exception
-│   ├── jwt
-│   └── config
-└── controller
-```
+**Backend**
+- Java 17
+- Spring Boot 4.0.3
+- Spring Security + JWT
+- Spring Data JPA
+- Spring Data Redis
+- Spring Scheduler
 
-도메인별(feature 기반) 패키지 구조를 사용하여 관련 기능들을 응집도 있게 관리했습니다.
+**Database**
+- MySQL 8.0 (운영 DB)
+- Redis 7 (캐시, 랭킹, 토큰 저장소)
+- H2 (테스트)
 
----
+**DevOps**
+- Docker & Docker Compose
+- GitHub Actions (CI)
+- Gradle
 
-# 🔐 Authentication Flow
-
-JWT 기반 Stateless 인증 방식을 적용했습니다.
-
-```text
-[1] Login Request
-        ↓
-[2] Username / Password 검증
-        ↓
-[3] JWT Access Token 발급
-        ↓
-[4] Authorization Header 포함
-        ↓
-[5] JwtAuthenticationFilter에서 토큰 검증
-        ↓
-[6] SecurityContext에 인증 정보 저장
-        ↓
-[7] 인증된 사용자로 API 접근
-```
-
-Authorization Header 예시:
-
-```http
-Authorization: Bearer {JWT_TOKEN}
-```
-
-Stateless 인증 구조를 적용하여 서버 세션 없이 JWT 기반으로 인증을 처리했습니다.
+**Testing**
+- JUnit 5
+- Mockito
+- JMeter (부하 테스트)
 
 ---
 
-# 📦 API Response
+## 🚀 빠른 시작
 
-일관된 API 응답 구조를 적용했습니다.
-
-## Success Response
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "요청 성공"
-}
-```
-
-## Error Response
-
-```json
-{
-  "code": "POST_NOT_FOUND",
-  "message": "게시글이 없습니다."
-}
-```
-
----
-
-# 🧪 Test & CI
-
-Service Layer 테스트와 MockMvc 기반 Controller 테스트를 작성했습니다.
-또한 GitHub Actions를 통해 push / pull request 시 자동으로 테스트와 빌드가 수행되도록 구성했습니다.
-
-## Test Coverage
-
-| 구분              | 테스트 내용                                |
-| --------------- | ------------------------------------- |
-| Service Test    | 회원가입, 로그인, 좋아요, 좋아요 취소, 예외 케이스 검증     |
-| Controller Test | MockMvc 기반 API 요청/응답 검증               |
-| Validation Test | 잘못된 요청 값에 대한 400 응답 검증                |
-| Security Test   | JWT 미인증 요청에 대한 401 응답 검증              |
-| Exception Test  | CustomException 발생 시 ErrorResponse 검증 |
-
-## CI Pipeline
-
-```text
-Push / Pull Request
-        ↓
-GitHub Actions 실행
-        ↓
-JDK 17 설정
-        ↓
-Gradle Test 실행
-        ↓
-Gradle Build 검증
-        ↓
-성공 / 실패 결과 확인
-```
-
----
-
-# ⚙ Environment
-
-- test : H2 기반 테스트 환경
-- prod : 환경 변수 기반 운영 환경 (MySQL)
-
----
-
-# 📄 API Docs
-
-Swagger(OpenAPI)를 적용하여 API 명세 및 테스트 환경을 구성했습니다.
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-JWT 인증 후 API를 직접 테스트할 수 있도록 구성했습니다.
-
----
-
-# ⚠ Trouble Shooting
-
-## N+1 Query 문제 해결
-
-### 문제 발견
-
-게시글 목록 조회 시 SQL 로그에서 쿼리가 비정상적으로 과다 발생하는 것을 직접 확인했습니다.
-`@ManyToOne` 기본 fetch 전략(EAGER)으로 인해 게시글 N개 조회 시 N+1번 쿼리가 실행되었습니다.
-
-### 해결 방법
-
-* `FetchType.LAZY` 적용
-* `JOIN FETCH`로 필요한 경우 한 번에 조회
-
-### 성능 측정 결과
-
-| 데이터 수 | 수정 전 쿼리 | 수정 후 쿼리 | 수정 전 응답 | 수정 후 응답 |
-|---|---|---|---|---|
-| 10개   | 12개     | 2개      | 86ms    | 5ms     |
-| 100개  | 102개    | 2개      | 75ms    | 11ms    |
-| 1000개 | 1,002개  | 2개      | 353ms   | 23ms    |
-
----
-
-## JWT 인증 실패 시 401/403 처리 문제
-
-### 문제
-
-토큰이 없거나 만료되었을 때 403 Forbidden이 반환되었습니다.
-
-### 해결
-
-`authenticationEntryPoint`를 추가하여 인증 실패 시 401 Unauthorized를 반환하도록 수정했습니다.
-
-```java
-.exceptionHandling(ex -> ex
-    .authenticationEntryPoint((request, response, e) ->
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
-    )
-)
-```
-
----
-
-## Spring Boot 4.x 테스트 환경 구성
-
-### 문제
-
-Spring Boot 4.x 환경에서 기존 테스트 방식(`@WebMvcTest`, `@MockBean`)이 정상 동작하지 않아 Controller 테스트 환경 구성에 어려움이 있었습니다.
-
-### 해결
-
-`@SpringBootTest` 기반으로 테스트 환경을 구성하고,
-
-```java
-MockMvcBuilders.webAppContextSetup(context)
-    .apply(springSecurity())
-```
-
-방식을 사용하여 JWT/Security 흐름을 포함한 Controller 테스트를 구성했습니다.
-
-또한 `@MockitoBean` 기반 Mock 객체를 적용하여 Controller 계층에 집중할 수 있도록 테스트 범위를 분리했습니다.
-
----
-
-## CI 환경에서 test profile 미적용 문제
-
-### 문제
-
-GitHub Actions 환경에서 `test profile`이 적용되지 않아 H2 대신 MySQL 연결을 시도하며 테스트가 실패했습니다.
-
-### 해결
-
-```gradle
-tasks.named('test') {
-    systemProperty 'spring.profiles.active', 'test'
-}
-```
-
-Gradle test task에 `test profile`을 명시적으로 적용하여 CI 환경에서도 동일한 테스트 환경을 유지하도록 구성했습니다.
-
----
-
-# 🚀 Improvements
-
-* Refresh Token 기반 인증 구조 개선
-* Redis 기반 인증/캐시 관리
-* QueryDSL 기반 동적 검색 기능 구현
-* Controller/통합 테스트 고도화
-* Docker Compose 운영 환경 개선
-* 배포 자동화(CD) 구축
-
----
-
-# ▶ Run
+### Docker Compose 실행 (권장)
 
 ```bash
+# MySQL + Redis + 애플리케이션 함께 실행
+docker compose up --build
+
+# API 문서 확인
+open http://localhost:8080/swagger-ui/index.html
+```
+
+### 로컬 실행
+
+```bash
+# 1. MySQL 8.0 실행 및 DB 생성
+CREATE DATABASE community;
+
+# 2. Redis 실행
+docker run -d -p 6379:6379 redis:7-alpine
+
+# 3. 환경 변수 설정 (application.yml 또는 .env)
+JWT_SECRET=your-secret-key-at-least-32-characters-long
+JWT_ACCESS_EXPIRATION=900000      # 15분
+JWT_REFRESH_EXPIRATION=604800000  # 7일
+
+# 4. 애플리케이션 실행
 ./gradlew bootRun
 ```
 
-또는
+---
+
+## 📡 API 문서
+
+**Swagger UI**: http://localhost:8080/swagger-ui/index.html
+
+### 주요 엔드포인트
+
+**인증**
+- `POST /api/auth/login` - 로그인 (Access Token + Refresh Token 발급)
+- `POST /api/auth/refresh` - 토큰 재발급
+- `POST /api/auth/logout` - 로그아웃 (Redis에서 Refresh Token 삭제)
+
+**스터디 모집**
+- `GET /api/posts/studies/search` - 스터디 검색 (카테고리, 모집 상태 필터)
+- `POST /api/posts` - 모집글 작성
+- `GET /api/posts/ranking` - 인기 스터디 랭킹 (Redis)
+
+**지원 관리**
+- `POST /api/posts/{id}/apply` - 스터디 지원
+- `GET /api/posts/{id}/applications` - 지원 목록 조회 (스터디장 전용)
+- `POST /api/applications/{id}/accept` - 지원 수락
+- `POST /api/applications/{id}/reject` - 지원 거절
+
+**좋아요**
+- `POST /api/posts/{id}/like` - 좋아요
+- `DELETE /api/posts/{id}/like` - 좋아요 취소
+- `GET /api/posts/{id}/likes` - 좋아요 수 조회 (Redis 캐싱)
+
+---
+
+## 🏗 프로젝트 구조
+
+```
+src/main/java/com/community/board/
+├── controller/          # API 엔드포인트
+│   ├── PostController
+│   ├── ApplicationController
+│   └── AuthController
+├── domain/             # 도메인별 응집
+│   ├── user/
+│   │   ├── User, UserRepository, UserService
+│   │   └── AuthService (인증 로직)
+│   ├── post/
+│   │   ├── Post, PostRepository, PostService
+│   │   ├── ranking/      # Redis 랭킹 시스템
+│   │   ├── event/        # 비동기 이벤트 처리
+│   │   └── scheduler/    # 자동 마감 스케줄러
+│   ├── application/      # 지원 시스템
+│   └── like/             # 좋아요 (동시성 제어)
+└── global/             # 공통 기능
+    ├── config/         # Security, JPA, Redis, Cache
+    ├── jwt/            # JWT 토큰 처리
+    ├── exception/      # 예외 처리
+    └── response/       # 공통 응답 형식
+```
+
+**설계 근거**: Controller 분리 (API 가시성) + Domain 응집 (기능별 관리) + Global 공통화 (중복 제거)
+
+---
+
+## 📊 성능 최적화 결과
+
+| 최적화 항목 | Before | After | 개선율 |
+|------------|--------|-------|--------|
+| N+1 쿼리 | 1,002개 | 2개 | 99.8% ↓ |
+| 응답 속도 | 353ms | 23ms | 93% ↑ |
+| 좋아요 중복 | 발생 가능 | 0건 | 100% 해결 |
+| DB 부하 | 높음 | 캐시 히트 시 0 쿼리 | - |
+
+---
+
+## 🧪 테스트
 
 ```bash
-docker compose up --build
+# 전체 테스트
+./gradlew test
+
+# 테스트 리포트
+open build/reports/tests/test/index.html
+
+# 특정 테스트만
+./gradlew test --tests PostLikeServiceTest
 ```
 
 ---
 
-# 💡 Design Decisions
+## ⚙️ 환경 설정
 
-- DTO 기반 응답 구조로 민감 정보 노출 방지
-- CustomException + ErrorCode 기반 예외 처리 구조 적용
-- JWT 인증 실패 시 401 Unauthorized 반환
-- test/prod 환경 분리
+### 환경별 프로파일
+- `application.yml`: 기본 설정
+- `application-prod.yml`: 운영 환경
+- `application-test.yml`: 테스트 환경 (H2)
+
+### 환경 변수
+
+```bash
+# JWT 설정
+JWT_SECRET=your-secret-key-at-least-32-characters-long
+JWT_ACCESS_EXPIRATION=900000       # 15분
+JWT_REFRESH_EXPIRATION=604800000   # 7일
+
+# MySQL
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/community
+SPRING_DATASOURCE_USERNAME=root
+SPRING_DATASOURCE_PASSWORD=password
+
+# Redis
+SPRING_DATA_REDIS_HOST=localhost
+SPRING_DATA_REDIS_PORT=6379
+```
+
 ---
 
-# 📚 What I Learned
+## 🔧 트러블슈팅
 
-이 프로젝트를 통해:
+**Port 8080 already in use**
+```bash
+lsof -ti:8080 | xargs kill -9
+```
 
-- JWT 인증 흐름 및 Spring Security 구조
-- Validation / Exception Handling 구조
-- 테스트 환경 분리 및 MockMvc 테스트
-- GitHub Actions 기반 CI 환경 구성
-- N+1 문제 분석 및 개선
+**MySQL 연결 실패**
+- docker-compose.yml의 포트 확인 (3307:3306)
+- MySQL 실행 상태: `docker ps`
 
-등 실제 서비스 구조와 운영 환경을 직접 경험할 수 있었습니다.
+**Redis 연결 실패**
+```bash
+docker ps | grep redis
+docker exec -it community-board-redis-1 redis-cli
+> ping
+PONG
+```
 
+---
+
+## 🎓 학습 내용 및 성과
+
+### 기술적 깊이
+- **Redis 활용**: Sorted Set (랭킹), String (캐시), Hash (Refresh Token)
+- **동시성 제어**: 유니크 제약 조건, @Transactional, 낙관적 락 개념
+- **성능 최적화**: N+1 쿼리 해결, 캐시 전략, 이벤트 기반 비동기 처리
+- **Spring 스케줄러**: Cron 표현식, @Transactional과의 상호작용
+
+### 실무 경험
+- **도메인 로직 복잡도**: 단순 CRUD를 넘어 지원 플로우, 권한 관리
+- **상태 관리**: RecruitStatus, ApplicationStatus의 생명주기
+- **비즈니스 요구사항**: "스터디장만 지원자를 볼 수 있다", "자기 스터디에는 지원 불가"
+
+### 설계 의사결정
+- **단일 책임 vs 빠른 구현**: Post 엔티티에 스터디 필드 포함 (트레이드오프 인식)
+- **동기 vs 비동기**: 랭킹 업데이트는 비동기, 좋아요 등록은 동기 (이유 설명 가능)
+- **캐시 TTL 전략**: 좋아요 수는 10분, Refresh Token은 7일 (목적에 따라 다름)
+
+---
+
+## 📝 라이선스
+
+MIT License
+
+---
+
+## 📧 Contact
+
+GitHub: [@yourusername](https://github.com/yourusername)
+
+---
+
+> 💡 **면접 준비 TIP**: 이 프로젝트의 모든 기술 선택에는 "왜?"라는 질문에 답할 수 있는 근거가 있습니다.
+> 예: "Redis를 쓴 이유? → 실시간 랭킹 O(log N), 좋아요 캐싱, Refresh Token 만료 관리"
