@@ -43,6 +43,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
 
+                        // 성능 측정을 위해 랭킹 API는 인증 불필요
+                        .requestMatchers(HttpMethod.GET, "/api/posts/ranking").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/ranking/db").permitAll()
+
                         .anyRequest().authenticated()
                 )
 

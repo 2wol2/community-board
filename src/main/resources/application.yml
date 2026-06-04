@@ -10,6 +10,11 @@ cache:
   default-ttl: 30  # minutes
   like-count-ttl: 10  # minutes
 
+ranking:
+  score:
+    like-weight: 10.0  # 좋아요 가중치
+    view-weight: 1.0   # 조회수 가중치
+
 jwt:
   secret: ${JWT_SECRET:local-dev-secret-key-local-dev-secret-key}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}  # 15분

@@ -101,8 +101,8 @@ class PostLikeCacheTest {
         // 3. 다시 좋아요 수 조회 (캐시 miss, DB 조회)
         long count = postLikeService.countLikes(postId);
 
-        // 검증: DB가 2번 호출됐는지 확인 (초기 1번 + 캐시 삭제 후 1번)
-        verify(postLikeRepository, times(2)).countByPostId(postId);
+        // 검증: DB가 3번 호출됐는지 확인 (초기 1번 + likePost 이벤트 발행 1번 + 캐시 삭제 후 1번)
+        verify(postLikeRepository, times(3)).countByPostId(postId);
         assertThat(count).isEqualTo(1);
     }
 

@@ -1,11 +1,14 @@
 package com.example.community.controller;
 
 import com.example.community.domain.like.PostLikeService;
+import com.example.community.domain.post.Category;
 import com.example.community.domain.post.PostService;
+import com.example.community.domain.post.RecruitStatus;
 import com.example.community.domain.post.dto.PostListDto;
 import com.example.community.domain.post.dto.PostRequestDto;
 import com.example.community.domain.post.dto.PostResponseDto;
 import com.example.community.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -56,6 +59,18 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size
     ){
         return postService.search(keyword, page, size);
+    }
+
+    @Operation(summary = "스터디 검색 (카테고리 + 모집 상태 필터)")
+    @GetMapping("/studies/search")
+    public Page<PostListDto> searchStudies(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Category category,
+            @RequestParam(required = false) RecruitStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        return postService.searchStudies(keyword, category, status, page, size);
     }
 
     @PutMapping("/{id}")

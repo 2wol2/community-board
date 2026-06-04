@@ -29,6 +29,7 @@ class PostLikeServiceTest {
     @Mock PostRepository postRepository;
     @Mock PostLikeRepository postLikeRepository;
     @Mock UserRepository userRepository;
+    @Mock org.springframework.context.ApplicationEventPublisher eventPublisher;
     @InjectMocks PostLikeService postLikeService;
 
     @Test
@@ -39,6 +40,7 @@ class PostLikeServiceTest {
         given(userRepository.findByUsername("user1")).willReturn(Optional.of(user));
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
         given(postLikeRepository.existsByUserAndPost(user, post)).willReturn(false);
+        given(postLikeRepository.countByPostId(1L)).willReturn(1L);
 
         postLikeService.likePost(1L, "user1");
 
