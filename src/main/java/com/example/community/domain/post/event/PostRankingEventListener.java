@@ -1,6 +1,7 @@
 package com.example.community.domain.post.event;
 
 import com.example.community.domain.post.ranking.PostRankingService;
+import com.example.community.domain.post.ranking.RankingScoreCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 public class PostRankingEventListener {
 
     private final PostRankingService rankingService;
+    private final RankingScoreCalculator scoreCalculator;
 
     /**
      * 게시글 랭킹 업데이트 이벤트 처리
@@ -33,7 +35,7 @@ public class PostRankingEventListener {
     @EventListener
     public void handlePostRankingEvent(PostRankingEvent event) {
         try {
-            double score = event.calculateScore();
+            double score = scoreCalculator.calculate(event.getLikeCount(), event.getViewCount());
 
             log.info("[랭킹 이벤트] postId: {}, likeCount: {}, viewCount: {}, score: {}",
                     event.getPostId(), event.getLikeCount(), event.getViewCount(), score);

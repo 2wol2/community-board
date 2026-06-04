@@ -27,17 +27,4 @@ public class PostRankingEvent {
      * 조회수
      */
     private final long viewCount;
-
-    /**
-     * 랭킹 점수 계산
-     *
-     * 계산식: likeCount * 10 + viewCount * 1
-     * - 좋아요에 10배 가중치 (참여도가 조회보다 중요)
-     * - 조회수는 기본 가중치
-     *
-     * @return 계산된 점수
-     */
-    public double calculateScore() {
-        return likeCount * 10.0 + viewCount * 1.0;
-    }
 }
