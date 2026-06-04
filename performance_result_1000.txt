@@ -1,0 +1,110 @@
+========================================
+성능 측정 결과: 게시글 1000개
+측정 일시: #오후
+========================================
+
+[Redis 방식]
+  평균 응답 시간: 129.552ms
+  처리량: 771.89 req/s
+  실패 요청: 0건
+
+[DB 방식]
+  평균 응답 시간: 761.217ms
+  처리량: 131.37 req/s
+  실패 요청: 0건
+
+[개선 효과]
+  응답 속도: 761.217ms → 129.552ms (83.0% 개선)
+  처리량: 5.9배 증가
+
+========================================
+상세 결과
+========================================
+
+[Redis 상세]
+This is ApacheBench, Version 2.3 <$Revision: 1913912 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient).....done
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /api/posts/ranking?topN=10
+Document Length:        1002 bytes
+
+Concurrency Level:      100
+Time taken for tests:   1.296 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      1277000 bytes
+HTML transferred:       1002000 bytes
+Requests per second:    771.89 [#/sec] (mean)
+Time per request:       129.552 [ms] (mean)
+Time per request:       1.296 [ms] (mean, across all concurrent requests)
+Transfer rate:          962.60 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.5      0       3
+Processing:    10  126  66.6    115     384
+Waiting:        7  126  66.5    115     384
+Total:         10  126  66.7    115     384
+
+Percentage of the requests served within a certain time (ms)
+  50%    115
+  66%    142
+  75%    168
+  80%    183
+  90%    219
+  95%    252
+  98%    288
+  99%    326
+ 100%    384 (longest request)
+
+[DB 상세]
+This is ApacheBench, Version 2.3 <$Revision: 1913912 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient).....done
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /api/posts/ranking/db?topN=10
+Document Length:        964 bytes
+
+Concurrency Level:      100
+Time taken for tests:   7.612 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      1239000 bytes
+HTML transferred:       964000 bytes
+Requests per second:    131.37 [#/sec] (mean)
+Time per request:       761.217 [ms] (mean)
+Time per request:       7.612 [ms] (mean, across all concurrent requests)
+Transfer rate:          158.95 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.9      0       5
+Processing:    31  737 451.0    647    2974
+Waiting:       26  736 450.7    647    2974
+Total:         31  738 450.8    647    2974
+
+Percentage of the requests served within a certain time (ms)
+  50%    647
+  66%    853
+  75%    996
+  80%   1106
+  90%   1384
+  95%   1601
+  98%   1868
+  99%   2012
+ 100%   2974 (longest request)
