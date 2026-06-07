@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: prod
   data:
     redis:
       host: ${REDIS_HOST:localhost}
