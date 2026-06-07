@@ -1,9 +1,8 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-
+    url: jdbc:mysql://mysql.railway.internal:3306/railway
+    username: root
+    password: QzJTMrHhSSXSUqXlxeQhyFplSErKpHkg
   jpa:
     open-in-view: false
     show-sql: false
@@ -12,8 +11,7 @@ spring:
     properties:
       hibernate:
         generate_statistics: false
-
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: redis.railway.internal
+      port: 6379
