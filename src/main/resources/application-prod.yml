@@ -12,3 +12,8 @@ spring:
     properties:
       hibernate:
         generate_statistics: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
